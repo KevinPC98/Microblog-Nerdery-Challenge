@@ -8,7 +8,7 @@ CREATE TABLE "roles" (
 
 -- CreateTable
 CREATE TABLE "users" (
-    "id" UUID NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "user_name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
