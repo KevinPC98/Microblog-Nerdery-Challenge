@@ -40,12 +40,12 @@ model User {
 }
 
 model Token {
-  id           String   @id @unique @default(uuid())
-  createdAt    DateTime @default(now()) @map(name: "created_at")
-  user         User     @relation(fields: [userId], references: [id])
-  userId       String   @map(name: "user_id")
-  jti          String   @unique @default(uuid())
-  refreshToken String?
+  id        String   @id @unique @default(uuid())
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @map(name: "user_id")
+  jti       String   @unique @default(uuid())
+  exp       Int?
 
   @@map(name: "tokens")
 }
