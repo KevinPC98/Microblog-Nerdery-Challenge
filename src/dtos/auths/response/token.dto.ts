@@ -6,5 +6,5 @@ export class TokenDto {
   readonly accessToken: string
 
   @Expose()
-  readonly refreshToken: string
+  readonly exp: number
 }

@@ -8,7 +8,7 @@ import { prisma } from '../prisma'
 import { PrismaErrorEnum } from '../utils/enums'
 
 export class AuthService {
-  static async createToken(userId: number): Promise<Token> {
+  static async createToken(userId: string): Promise<Token> {
     try {
       const token = await prisma.token.create({
         data: {
@@ -54,5 +54,4 @@ export class AuthService {
       exp,
     }
   }
-
 }

@@ -1,9 +1,9 @@
 import express, { NextFunction, Request, Response } from 'express'
-import { router } from './router'
 import { HttpError } from 'http-errors'
-import { HttpErrorDto } from './dtos/http-error.dto'
 import { plainToClass } from 'class-transformer'
 import morgan from 'morgan'
+import { HttpErrorDto } from './dtos/http-error.dto'
+import { router } from './router'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -31,14 +31,12 @@ function errorHandler(
   res.json(plainToClass(HttpErrorDto, err))
 }
 
-
 app.get('/api/v1/status', (req: Request, res: Response) => {
   res.json({ time: new Date() })
 })
 
 app.use('/', router(app))
 app.use(errorHandler)
-
 
 app.listen(PORT, async () => {
   // eslint-disable-next-line no-console
