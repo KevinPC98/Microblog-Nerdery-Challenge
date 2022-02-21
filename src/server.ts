@@ -1,5 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express'
 import { router } from './router'
+import { HttpError } from 'http-errors'
+import { HttpErrorDto } from './dtos/http-error.dto'
+import { plainToClass } from 'class-transformer'
 import morgan from 'morgan'
 
 const app = express()
@@ -10,11 +13,31 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 
+function errorHandler(
+  err: HttpError,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction,
+): void {
+  if (ENVIROMENT !== 'development') {
+    // eslint-disable-next-line no-console
+    console.error(err.message)
+    // eslint-disable-next-line no-console
+    console.error(err.stack || '')
+  }
+
+  res.status(err.status ?? 500)
+  res.json(plainToClass(HttpErrorDto, err))
+}
+
+
 app.get('/api/v1/status', (req: Request, res: Response) => {
   res.json({ time: new Date() })
 })
 
 app.use('/', router(app))
+app.use(errorHandler)
 
 
 app.listen(PORT, async () => {

@@ -5,7 +5,7 @@ import { login, signup } from '../controllers/auth.controller'
 const router = express.Router()
 
 export function authRoutes(): Router {
-  router.route('/login').get(asyncHandler(login))
+  router.route('/login').post(asyncHandler(login))
   router.route('/signup').post(asyncHandler(signup))
   
   return router
