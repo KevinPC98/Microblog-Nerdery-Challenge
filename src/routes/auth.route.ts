@@ -7,6 +7,6 @@ const router = express.Router()
 export function authRoutes(): Router {
   router.route('/login').post(asyncHandler(login))
   router.route('/signup').post(asyncHandler(signup))
-  
+
   return router
 }
