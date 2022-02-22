@@ -1,7 +1,7 @@
 import { Prisma, Token } from '@prisma/client'
-import { compareSync } from 'bcryptjs'
-import { Unauthorized, NotFound } from 'http-errors'
-import { verify, sign } from 'jsonwebtoken'
+//import { compareSync } from 'bcryptjs'
+import { /* Unauthorized, */ NotFound } from 'http-errors'
+import { /* verify, */ sign } from 'jsonwebtoken'
 //import { LoginDto } from '../dtos/auths/request/login.dto'
 import { TokenDto } from '../dtos/auths/response/token.dto'
 import { prisma } from '../prisma'
@@ -15,7 +15,8 @@ export class AuthService {
           userId,
         },
       })
-
+      // eslint-disable-next-line no-console
+      console.log('retornando token...')
       return token
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {

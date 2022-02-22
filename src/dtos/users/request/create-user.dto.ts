@@ -1,9 +1,15 @@
 import { Expose, Exclude } from 'class-transformer'
-import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator'
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator'
 import { BaseDto } from '../../base.dto'
 
 @Exclude()
-export class SignUpDto extends BaseDto {
+export class CreateUserDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
@@ -21,10 +27,10 @@ export class SignUpDto extends BaseDto {
   @Expose()
   @IsString()
   @Length(6, 20)
-  password: string
+  readonly password: string
 
   @Expose()
   @IsString()
-  @Length(6, 20)
-  passwordConfirmation: string
+  @IsOptional()
+  readonly role: string
 }

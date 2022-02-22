@@ -1,9 +1,9 @@
-//import { Prisma } from '@prisma/client'
-import { UnprocessableEntity, NotFound } from 'http-errors'
+import { Prisma } from '@prisma/client'
+import { UnprocessableEntity /*,  NotFound */ } from 'http-errors'
 import { hashSync } from 'bcryptjs'
-import { plainToClass } from 'class-transformer'
-import { sign, verify } from 'jsonwebtoken'
-import { CreateUserDto } from '../dtos/auths/request/signup.dto'
+//import { plainToClass } from 'class-transformer'
+//import { sign, verify } from 'jsonwebtoken'
+import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 //import { UpdateUserDto } from '../dtos/users/request/update-user.dto'
 import { prisma } from '../prisma'
 import { TokenDto } from '../dtos/auths/response/token.dto'
@@ -32,16 +32,16 @@ export class UsersService {
       data: {
         ...input,
         password: hashSync(password, 10),
+        role: 'U',
       },
     })
     const token = await AuthService.createToken(user.id)
-
-/*     emitter.emit(USER_EMAIL_CONFIRMATION, {
+    /* 
+    emitter.emit(USER_EMAIL_CONFIRMATION, {
       email: user.email,
       userUUID: user.uuid,
-    }) */
-
+    })
+    */
     return AuthService.generateAccessToken(token.jti)
   }
-
 }
