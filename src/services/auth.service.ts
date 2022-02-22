@@ -1,21 +1,14 @@
 import { Prisma, Token } from '@prisma/client'
-<<<<<<< HEAD
-//import { compareSync } from 'bcryptjs'
-import { /* Unauthorized, */ NotFound } from 'http-errors'
-import { /* verify, */ sign } from 'jsonwebtoken'
-//import { LoginDto } from '../dtos/auths/request/login.dto'
-=======
 import { compareSync } from 'bcryptjs'
-import { plainToClass } from 'class-transformer'
 import { Unauthorized, NotFound } from 'http-errors'
 import { verify, sign } from 'jsonwebtoken'
 import { LoginDto } from '../dtos/auths/request/login.dto'
->>>>>>> authlog
 import { TokenDto } from '../dtos/auths/response/token.dto'
 import { prisma } from '../prisma'
 import { PrismaErrorEnum } from '../utils/enums'
 
 export class AuthService {
+  
   static async login(data: LoginDto): Promise<TokenDto> {
     const user = await prisma.user.findUnique({
       where: {
@@ -23,15 +16,20 @@ export class AuthService {
       },
     })
 
-    if (!user) throw new Unauthorized('User doesnt exist')
+    if (!user) 
+      throw new Unauthorized('User doesnt exist')
 
     const validPassword = compareSync(data.password, user.password)
 
-    if (!validPassword) throw new Unauthorized('Password incorrect')
+    if (!validPassword) 
+      throw new Unauthorized('Password incorrect')
 
     const recordToken = await this.createToken(user.id)
 
     return this.generateAccessToken(recordToken.jti)
+  }
+  static async logout(token: TokenDto): Promise<void>{
+    
   }
   static async createToken(userId: string): Promise<Token> {
     try {
@@ -40,8 +38,6 @@ export class AuthService {
           userId,
         },
       })
-      // eslint-disable-next-line no-console
-      console.log('retornando token...')
       return token
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -64,7 +60,7 @@ export class AuthService {
         parseInt(process.env.JWT_EXPIRATION_TIME as string, 10),
       ) / 1000,
     )
-    console.log(exp)
+    
     const iat = Math.floor(now / 1000)
 
     const accessToken = sign(

@@ -1,40 +1,71 @@
-<<<<<<< HEAD
-=======
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
 import jwt, { JsonWebTokenError } from 'jsonwebtoken'
 import { Unauthorized, NotFound } from 'http-errors'
 import { LoginDto } from '../dtos/auths/request/login.dto'
-//import { clearDatabase, prisma } from '../prisma'
-//import { UserFactory } from '../utils/factories/user.factory'
-//import { TokenFactory } from '../utils/factories/token.factory'
 import { AuthService } from './auth.service'
+import { UsersService } from './user.service'
+import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 
-describe('login', () => {
-  it('should has a sucessful session and return token', async () => {
-    const data = plainToClass(LoginDto, {
-      email: 'corenancco@ravn.co',
-      password: 'nerdery2022',
-    })
-    const result = await AuthService.login(data)
 
-    expect(result).toHaveProperty(['accessToken', 'exp'])
+describe('AuthService', ()=>{
+  
+  const user = plainToClass(CreateUserDto, {
+    name: 'user',
+    userName:'user',
+    email: 'test11@example.com',
+    password: 'test2022',
   })
-  it('should has a failed session and return error', async () => {
-    const data = plainToClass(LoginDto, {
-      email: 'corenancco@ravn.co',
-      password: 'nerdery0000',
+    
+  describe('login', () => {
+    it('should has a sucessful session and return token', async () => {
+      await UsersService.create(user)
+      const data = plainToClass(LoginDto, {
+        email: user.email,
+        password: user.password,
+      })
+      const result = await AuthService.login(data)
+  
+      expect(result).toHaveProperty('accessToken')
     })
-    await expect(AuthService.login(data)).toThrowError()
-  })
-  it('should return a error if user doesnt exist', async () => {
-    const data = plainToClass(LoginDto, {
-      email: faker.internet.email,
-      password: faker.internet.password(8),
+  
+    it('should has a failed session because of password is incorrect and throw error', async () => {
+      const data = plainToClass(LoginDto, {
+        email: user.email,
+        password: faker.internet.password(8),
+      })
+      await expect(AuthService.login(data)).rejects.toThrow(new Unauthorized('Password incorrect'))
     })
-    await expect(AuthService.login(data)).toThrowError(
-      new Error('User doesnt exist'),
-    )
+    
+    it('should return a error if user doesnt exist', async () => {
+      const data = plainToClass(LoginDto, {
+        email: faker.internet.email,
+        password: faker.internet.password(8),
+      })
+      await expect(AuthService.login(data)).rejects.toThrow(
+        new Unauthorized('User doesnt exist')
+      )
+    })
   })
+  
+  describe('logout',()=>{
+    it('should do the action a delete token', async()=>{
+      const data = plainToClass(LoginDto, {
+        email: user.email,
+        password: user.password,
+      })
+      const token  = await AuthService.login(data)
+      await expect(AuthService.logout(token)).toBeTrue()
+    })
+  
+    it('should throw error if the token isn\'t validate',async ()=>{
+      const data = plainToClass(LoginDto, {
+        email: user.email,
+        password: user.password,
+      })
+      const token  = await AuthService.login(data)
+      await expect(AuthService.logout(token)).rejects.toThrow()
+    })  
+  })
+  
 })
->>>>>>> authlog
