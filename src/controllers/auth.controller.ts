@@ -13,10 +13,18 @@ export async function login(req: Request, res: Response): Promise<void> {
   if (isValid) {
     const token = await AuthService.login(data)
     console.log(token)
-    res.status(200)
+    res.status(201)
     res.json(token)
   }
   // const token = await AuthService.login(data)
+}
+export async function editProfile(req: Request, res: Response): Promise<void>{
+  
+}
+
+export async function logout(req:Request, res: Response):Promise<void>{
+  const token = req.headers.token
+
 }
 
 export async function signup(req: Request, res: Response): Promise<void> {
