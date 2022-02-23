@@ -55,7 +55,8 @@ export class UsersService {
           ...user,
         },
       })
-
+      console.log('user update: ', user)
+      console.log('user update: ', updatedUser)
       return plainToClass(UserDto, updatedUser)
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
