@@ -185,5 +185,12 @@ describe('UserService', () => {
       expect(result).toHaveProperty('createdAt')
       expect(result).toHaveProperty('updatedAt')
     })
+
+    it('should throw an error if user does not exist', async () => {
+      const userId = 'uuid'
+      await expect(UsersService.getProfile(userId)).rejects.toThrow(
+        new NotFound('User not found'),
+      )
+    })
   })
 })
