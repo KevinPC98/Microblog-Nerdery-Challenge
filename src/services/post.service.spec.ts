@@ -74,7 +74,7 @@ describe('PostService', () => {
     })
     it("should return a error if the post doesn't exist", async () => {
       const postId = faker.datatype.uuid()
-      await expect(await PostService.get(postId)).rejects.toThrow(
+      await expect(PostService.get(postId)).rejects.toThrow(
         new NotFound("Post doesn't exist"),
       )
     })
