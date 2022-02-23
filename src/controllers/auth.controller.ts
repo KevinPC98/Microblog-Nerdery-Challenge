@@ -1,3 +1,4 @@
+import { User } from '@prisma/client'
 import { plainToClass } from 'class-transformer'
 import { Request, Response } from 'express'
 //import bcrypt from 'bcryptjs'
@@ -13,20 +14,14 @@ export async function login(req: Request, res: Response): Promise<void> {
 
   if (isValid) {
     const token = await AuthService.login(data)
-    console.log(token)
+
     res.status(201)
     res.json(token)
   }
-  // const token = await AuthService.login(data)
 }
-export async function editProfile(req: Request, res: Response): Promise<void>{
-  
-}
+//export async function editProfile(req: Request, res: Response): Promise<void> {}
 
-export async function logout(req:Request, res: Response):Promise<void>{
-  const token = req.headers.token
-
-}
+//export async function logout(req: Request, res: Response): Promise<void> {}
 
 export async function signup(req: Request, res: Response): Promise<void> {
   if (req.body.password != req.body.passwordConfirmation) {
@@ -36,5 +31,12 @@ export async function signup(req: Request, res: Response): Promise<void> {
   const dto = plainToClass(CreateUserDto, req.body)
   await dto.isValid()
   const token = await UsersService.create(dto)
-  res.status(201).send({ user: token })
+  res.status(201).json(token)
+}
+
+export async function getProfile(req: Request, res: Response): Promise<void> {
+  const user = req.user as User
+  //console.log('USERCONTROLLER: ' + user)
+  const profileUser = await UsersService.getProfile(user.id)
+  res.status(201).json(profileUser)
 }

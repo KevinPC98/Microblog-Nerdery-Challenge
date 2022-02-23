@@ -9,6 +9,7 @@ const app = express()
 const PORT = process.env.PORT || 3000
 const ENVIROMENT = process.env.NODE_ENV || 'development'
 
+//app.use(passport.initialize())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
