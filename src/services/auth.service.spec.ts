@@ -1,7 +1,6 @@
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
-import jwt, { JsonWebTokenError } from 'jsonwebtoken'
-import { Unauthorized, NotFound } from 'http-errors'
+import { Unauthorized } from 'http-errors'
 import { hashSync } from 'bcryptjs'
 import { LoginDto } from '../dtos/auths/request/login.dto'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'

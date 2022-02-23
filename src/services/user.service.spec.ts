@@ -1,8 +1,6 @@
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
 import { UnprocessableEntity, NotFound } from 'http-errors'
-import jwt, { JsonWebTokenError } from 'jsonwebtoken'
-import { LoginDto } from '../dtos/auths/request/login.dto'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
 import { ProfileDto } from '../dtos/users/request/profile.dto'
