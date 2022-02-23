@@ -1,14 +1,13 @@
 import { Prisma, Token } from '@prisma/client'
 import { compareSync } from 'bcryptjs'
 import { Unauthorized, NotFound } from 'http-errors'
-import { verify, sign } from 'jsonwebtoken'
+import { sign } from 'jsonwebtoken'
 import { LoginDto } from '../dtos/auths/request/login.dto'
 import { TokenDto } from '../dtos/auths/response/token.dto'
 import { prisma } from '../prisma'
 import { PrismaErrorEnum } from '../utils/enums'
 
 export class AuthService {
-  
   static async login(data: LoginDto): Promise<TokenDto> {
     const user = await prisma.user.findUnique({
       where: {
@@ -16,21 +15,17 @@ export class AuthService {
       },
     })
 
-    if (!user) 
-      throw new Unauthorized('User doesnt exist')
+    if (!user) throw new Unauthorized('User doesnt exist')
 
     const validPassword = compareSync(data.password, user.password)
 
-    if (!validPassword) 
-      throw new Unauthorized('Password incorrect')
+    if (!validPassword) throw new Unauthorized('Password incorrect')
 
     const recordToken = await this.createToken(user.id)
 
     return this.generateAccessToken(recordToken.jti)
   }
-  static async logout(token: TokenDto): Promise<void>{
-    
-  }
+  static async logout(token: TokenDto): Promise<void> {}
   static async createToken(userId: string): Promise<Token> {
     try {
       const token = await prisma.token.create({
@@ -60,7 +55,7 @@ export class AuthService {
         parseInt(process.env.JWT_EXPIRATION_TIME as string, 10),
       ) / 1000,
     )
-    
+
     const iat = Math.floor(now / 1000)
 
     const accessToken = sign(
