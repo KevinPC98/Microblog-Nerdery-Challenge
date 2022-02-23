@@ -2,18 +2,17 @@ import { plainToClass } from 'class-transformer'
 import faker from 'faker'
 import jwt, { JsonWebTokenError } from 'jsonwebtoken'
 import { Unauthorized, NotFound } from 'http-errors'
+import { hashSync } from 'bcryptjs'
 import { LoginDto } from '../dtos/auths/request/login.dto'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
 import { AuthService } from './auth.service'
-import { UsersService } from './user.service'
 
 describe('AuthService', () => {
   const user = plainToClass(CreateUserDto, {
-    name: 'user',
-    userName: 'user',
-    email: 'test12@example.com',
-    password: 'test2022',
+    name: faker.name.firstName(),
+    userName: faker.internet.userName(),
+    email: faker.internet.email(),
   })
 
   describe('login', () => {
@@ -25,10 +24,17 @@ describe('AuthService', () => {
       })
     })
     it('should has a sucessful session and return token', async () => {
-      await UsersService.create(user)
+      const pwd = faker.internet.password(8)
+      await prisma.user.create({
+        data: {
+          ...user,
+          password: hashSync(pwd, 10),
+          role: 'U',
+        },
+      })
       const data = plainToClass(LoginDto, {
         email: user.email,
-        password: user.password,
+        password: pwd,
       })
       const result = await AuthService.login(data)
 
@@ -56,23 +62,38 @@ describe('AuthService', () => {
     })
   })
 
-  // describe('logout', () => {
-  //   it('should do the action a delete token', async () => {
-  //     const data = plainToClass(LoginDto, {
-  //       email: user.email,
-  //       password: user.password,
-  //     })
-  //     const token = await AuthService.login(data)
-  //     await expect(AuthService.logout(token)).toBeTrue()
-  //   })
+  describe('logout', () => {
+    afterAll(async () => {
+      await prisma.user.delete({
+        where: {
+          email: user.email,
+        },
+      })
+    })
+    it('should delete token and have a sucessful logout', async () => {
+      const pwd = faker.internet.password(8)
+      await prisma.user.create({
+        data: {
+          ...user,
+          password: hashSync(pwd, 10),
+          role: 'U',
+        },
+      })
+      const data = plainToClass(LoginDto, {
+        email: user.email,
+        password: pwd,
+      })
 
-  //   it("should throw error if the token isn't validate", async () => {
-  //     const data = plainToClass(LoginDto, {
-  //       email: user.email,
-  //       password: user.password,
-  //     })
-  //     const token = await AuthService.login(data)
-  //     await expect(AuthService.logout(token)).rejects.toThrow()
-  //   })
-  // })
+      const token = await AuthService.login(data)
+
+      expect(await AuthService.logout(token.accessToken)).toBeUndefined()
+    })
+
+    it("should throw error if the token isn't validate", async () => {
+      const token = faker.name.firstName()
+      await expect(AuthService.logout(token)).rejects.toThrow(
+        new Unauthorized('invalidate token'),
+      )
+    })
+  })
 })

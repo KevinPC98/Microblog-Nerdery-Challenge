@@ -1,7 +1,7 @@
 import { Prisma, Token } from '@prisma/client'
 import { compareSync } from 'bcryptjs'
 import { Unauthorized, NotFound } from 'http-errors'
-import { sign } from 'jsonwebtoken'
+import { verify, sign } from 'jsonwebtoken'
 import { LoginDto } from '../dtos/auths/request/login.dto'
 import { TokenDto } from '../dtos/auths/response/token.dto'
 import { prisma } from '../prisma'
@@ -25,7 +25,19 @@ export class AuthService {
 
     return this.generateAccessToken(recordToken.jti)
   }
-  static async logout(token: TokenDto): Promise<void> {}
+  static async logout(token: string): Promise<void> {
+    try {
+      const jwt = verify(token, process.env.JWT_SECRET_KEY as string)
+
+      await prisma.token.delete({
+        where: {
+          jti: jwt.sub as string,
+        },
+      })
+    } catch (error) {
+      throw new Unauthorized('invalidate token')
+    }
+  }
   static async createToken(userId: string): Promise<Token> {
     try {
       const token = await prisma.token.create({
