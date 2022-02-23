@@ -1,7 +1,5 @@
 import { plainToClass } from 'class-transformer'
 import { Request, Response } from 'express'
-//import bcrypt from 'bcryptjs'
-//import { SignUpDto } from '../dtos/auths/request/signup.dto'
 import { User } from '@prisma/client'
 import { UsersService } from '../services/user.service'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
@@ -33,7 +31,9 @@ export async function editProfile(req: Request, res: Response): Promise<void> {
 }
 
 export async function logout(req: Request, res: Response): Promise<void> {
-  const token = req.headers.token
+  const token = req.headers.authorization?.replace('Bearer ', '')
+  await AuthService.logout(token as string)
+  res.status(204).json({})
 }
 
 export async function signup(req: Request, res: Response): Promise<void> {
