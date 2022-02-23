@@ -1,5 +1,6 @@
 import { Prisma, Token } from '@prisma/client'
 import { compareSync } from 'bcryptjs'
+//import { plainToClass } from 'class-transformer'
 import { Unauthorized, NotFound } from 'http-errors'
 import { verify, sign } from 'jsonwebtoken'
 import { LoginDto } from '../dtos/auths/request/login.dto'
@@ -67,7 +68,6 @@ export class AuthService {
         parseInt(process.env.JWT_EXPIRATION_TIME as string, 10),
       ) / 1000,
     )
-
     const iat = Math.floor(now / 1000)
 
     const accessToken = sign(

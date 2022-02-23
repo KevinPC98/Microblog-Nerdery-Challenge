@@ -6,6 +6,7 @@ import {
   login,
   logout,
   signup,
+  getProfile,
 } from '../controllers/auth.controller'
 
 const router = express.Router()
@@ -21,5 +22,6 @@ export function authRoutes(): Router {
       asyncHandler(editProfile),
     )
 
+  router.route('/profile').get(asyncHandler(getProfile))
   return router
 }

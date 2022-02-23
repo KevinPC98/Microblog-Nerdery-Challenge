@@ -5,6 +5,7 @@ import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
 import { ProfileDto } from '../dtos/users/request/profile.dto'
 import { UsersService } from './user.service'
+import { AuthService } from './auth.service'
 
 describe('UserService', () => {
   describe('update user', () => {
@@ -63,6 +64,7 @@ describe('UserService', () => {
         userName: faker.internet.userName(),
       })
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const result = await UsersService.update(getUser!.id, data)
 
       expect(result).toHaveProperty('name')
@@ -86,6 +88,7 @@ describe('UserService', () => {
       })
       const data = plainToClass(ProfileDto, { email: objuserTwo.email })
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await expect(UsersService.update(getUser!.id, data)).rejects.toThrow(
         new UnprocessableEntity('email already exist'),
       )
@@ -98,6 +101,43 @@ describe('UserService', () => {
       await expect(UsersService.update(userId, data)).rejects.toThrow(
         new NotFound('User not found'),
       )
+    })
+  })
+
+  describe('create', () => {
+    it('should throw an error if the user already exists', async () => {
+      const expected = new UnprocessableEntity('email already taken')
+      const value = plainToClass(CreateUserDto, {
+        name: 'name',
+        userName: 'userName',
+        email: 'user@ravn.com',
+        password: 'nerdery2022',
+        passwordConfirmation: 'nerdery2022',
+      })
+      const result = UsersService.create(value)
+
+      await expect(result).rejects.toThrowError(expected)
+    })
+
+    it('should create a new user and return a Token', async () => {
+      const spyCreateToken = jest.spyOn(AuthService, 'createToken')
+      const spyGenerateAccessToken = jest.spyOn(
+        AuthService,
+        'generateAccessToken',
+      )
+      const value = plainToClass(CreateUserDto, {
+        name: 'name',
+        userName: 'userName',
+        email: 'user@ravn.com',
+        password: 'nerdery2022',
+        passwordConfirmation: 'nerdery2022',
+      })
+      const result = await UsersService.create(value)
+
+      expect(spyCreateToken).toHaveBeenCalledOnce()
+      expect(spyGenerateAccessToken).toHaveBeenCalledOnce()
+      expect(result).toHaveProperty('accessToken', expect.any(String))
+      expect(result).toHaveProperty('exp', expect.any(Number))
     })
   })
 })

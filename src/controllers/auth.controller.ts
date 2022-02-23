@@ -1,6 +1,6 @@
+import { User } from '@prisma/client'
 import { plainToClass } from 'class-transformer'
 import { Request, Response } from 'express'
-import { User } from '@prisma/client'
 import { UsersService } from '../services/user.service'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { AuthService } from '../services/auth.service'
@@ -44,5 +44,12 @@ export async function signup(req: Request, res: Response): Promise<void> {
   const dto = plainToClass(CreateUserDto, req.body)
   await dto.isValid()
   const token = await UsersService.create(dto)
-  res.status(201).send({ user: token })
+  res.status(201).json(token)
+}
+
+export async function getProfile(req: Request, res: Response): Promise<void> {
+  const user = req.user as User
+  //console.log('USERCONTROLLER: ' + user)
+  const profileUser = await UsersService.getProfile(user.id)
+  res.status(201).json(profileUser)
 }

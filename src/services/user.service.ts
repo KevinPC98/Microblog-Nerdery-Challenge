@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { UnprocessableEntity, NotFound } from 'http-errors'
+import sgMail from '@sendgrid/mail'
 import { hashSync } from 'bcryptjs'
 import { plainToClass } from 'class-transformer'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
@@ -36,12 +37,25 @@ export class UsersService {
       },
     })
     const token = await AuthService.createToken(user.id)
-    /* 
-    emitter.emit(USER_EMAIL_CONFIRMATION, {
-      email: user.email,
-      userUUID: user.uuid,
-    })
-    */
+
+    const sendEmail = async () => {
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY as string)
+      const msg = {
+        to: user.email as string,
+        from: process.env.SENDGRID_SENDER_EMAIL as string,
+        subject: 'Confirm Account',
+        text: 'please confirm your email',
+        html: `<strong>Token: ${token}</strong>`,
+      }
+      //ES6
+      try {
+        await sgMail.send(msg)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log(error)
+      }
+    }
+    sendEmail()
     return AuthService.generateAccessToken(token.jti)
   }
 
@@ -70,5 +84,12 @@ export class UsersService {
 
       throw error
     }
+  }
+  static async getProfile(id: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id } })
+    // eslint-disable-next-line no-console
+    console.log(user)
+
+    //return plainToClass(ProfileDto, user)
   }
 }
