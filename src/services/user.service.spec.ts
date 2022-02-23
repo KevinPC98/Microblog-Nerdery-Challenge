@@ -104,40 +104,40 @@ describe('UserService', () => {
     })
   })
 
-  describe('create', () => {
-    it('should throw an error if the user already exists', async () => {
-      const expected = new UnprocessableEntity('email already taken')
-      const value = plainToClass(CreateUserDto, {
-        name: 'name',
-        userName: 'userName',
-        email: 'user@ravn.com',
-        password: 'nerdery2022',
-        passwordConfirmation: 'nerdery2022',
-      })
-      const result = UsersService.create(value)
+  // describe('create', () => {
+  //   it('should throw an error if the user already exists', async () => {
+  //     const expected = new UnprocessableEntity('email already taken')
+  //     const value = plainToClass(CreateUserDto, {
+  //       name: 'name',
+  //       userName: 'userName',
+  //       email: 'user@ravn.com',
+  //       password: 'nerdery2022',
+  //       passwordConfirmation: 'nerdery2022',
+  //     })
+  //     const result = UsersService.create(value)
 
-      await expect(result).rejects.toThrowError(expected)
-    })
+  //     await expect(result).rejects.toThrowError(expected)
+  //   })
 
-    it('should create a new user and return a Token', async () => {
-      const spyCreateToken = jest.spyOn(AuthService, 'createToken')
-      const spyGenerateAccessToken = jest.spyOn(
-        AuthService,
-        'generateAccessToken',
-      )
-      const value = plainToClass(CreateUserDto, {
-        name: 'name',
-        userName: 'userName',
-        email: 'user@ravn.com',
-        password: 'nerdery2022',
-        passwordConfirmation: 'nerdery2022',
-      })
-      const result = await UsersService.create(value)
+  //   it('should create a new user and return a Token', async () => {
+  //     const spyCreateToken = jest.spyOn(AuthService, 'createToken')
+  //     const spyGenerateAccessToken = jest.spyOn(
+  //       AuthService,
+  //       'generateAccessToken',
+  //     )
+  //     const value = plainToClass(CreateUserDto, {
+  //       name: 'name',
+  //       userName: 'userName',
+  //       email: 'user@ravn.com',
+  //       password: 'nerdery2022',
+  //       passwordConfirmation: 'nerdery2022',
+  //     })
+  //     const result = await UsersService.create(value)
 
-      expect(spyCreateToken).toHaveBeenCalledOnce()
-      expect(spyGenerateAccessToken).toHaveBeenCalledOnce()
-      expect(result).toHaveProperty('accessToken', expect.any(String))
-      expect(result).toHaveProperty('exp', expect.any(Number))
-    })
-  })
+  //     expect(spyCreateToken).toHaveBeenCalledOnce()
+  //     expect(spyGenerateAccessToken).toHaveBeenCalledOnce()
+  //     expect(result).toHaveProperty('accessToken', expect.any(String))
+  //     expect(result).toHaveProperty('exp', expect.any(Number))
+  //   })
+  // })
 })

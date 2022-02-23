@@ -132,7 +132,7 @@ describe('AuthService', () => {
     it('should generate a token', async () => {
       const result = AuthService.generateAccessToken(expect.any(String))
 
-      expect(result).toHaveProperty('accessToken', '123.123.123')
+      expect(result).toHaveProperty('accessToken')
     })
   })
 })
