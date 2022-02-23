@@ -85,11 +85,22 @@ export class UsersService {
       throw error
     }
   }
-  static async getProfile(id: string): Promise<void> {
-    const user = await prisma.user.findUnique({ where: { id } })
-    // eslint-disable-next-line no-console
-    console.log(user)
+  static async getProfile(id: string): Promise<UserDto> {
+    try {
+      const user = await prisma.user.findUnique({ where: { id } })
 
-    //return plainToClass(ProfileDto, user)
+      return plainToClass(UserDto, user)
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        switch (error.code) {
+          case PrismaErrorEnum.NOT_FOUND:
+            throw new NotFound('User not found')
+          default:
+            throw error
+        }
+      }
+
+      throw error
+    }
   }
 }

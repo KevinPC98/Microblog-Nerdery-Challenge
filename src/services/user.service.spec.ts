@@ -140,4 +140,50 @@ describe('UserService', () => {
       expect(result).toHaveProperty('exp', expect.any(Number))
     })
   })
+
+  describe('getProfile', () => {
+    const objuser = plainToClass(CreateUserDto, {
+      name: faker.name.firstName(),
+      userName: faker.internet.userName(),
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+      role: 'U',
+    })
+
+    beforeEach(async () => {
+      await prisma.user.create({
+        data: {
+          ...objuser,
+        },
+      })
+    })
+    afterEach(async () => {
+      await prisma.user.delete({
+        where: {
+          email: objuser.email,
+        },
+      })
+    })
+    it('should return a profile of user', async () => {
+      const getUser = await prisma.user.findUnique({
+        where: {
+          email: objuser.email,
+        },
+        select: {
+          id: true,
+        },
+        rejectOnNotFound: false,
+      })
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const result = await UsersService.getProfile(getUser!.id)
+
+      expect(result).toHaveProperty('name')
+      expect(result).toHaveProperty('userName')
+      expect(result).toHaveProperty('email')
+      expect(result).toHaveProperty('isEmailPublic')
+      expect(result).toHaveProperty('isNamePublic')
+      expect(result).toHaveProperty('createdAt')
+      expect(result).toHaveProperty('updatedAt')
+    })
+  })
 })

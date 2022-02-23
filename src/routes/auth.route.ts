@@ -21,6 +21,10 @@ export function authRoutes(): Router {
       passport.authenticate('jwt', { session: false }),
       asyncHandler(editProfile),
     )
+    .get(
+      passport.authenticate('jwt', { session: false }),
+      asyncHandler(getProfile),
+    )
 
   router.route('/profile').get(asyncHandler(getProfile))
   return router
