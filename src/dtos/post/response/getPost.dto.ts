@@ -14,6 +14,11 @@ export class GetPostDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
+  readonly id: string
+
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
   readonly title: string
 
   @Expose()
@@ -31,11 +36,11 @@ export class GetPostDto extends BaseDto {
 
   @Expose()
   @IsNumber()
-  readonly countLike: string
+  readonly countLike: number
 
   @Expose()
   @IsNumber()
-  readonly countDislike: string
+  readonly countDislike: number
 
   @Expose()
   readonly user: UserDto

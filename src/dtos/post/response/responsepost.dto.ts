@@ -7,6 +7,11 @@ export class ResponsePostDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
+  readonly id: string
+
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
   readonly title: string
 
   @Expose()
@@ -17,6 +22,10 @@ export class ResponsePostDto extends BaseDto {
   @Expose()
   @IsBoolean()
   readonly isPublic: boolean
+
+  @Expose()
+  @IsDateString()
+  readonly updatedAt: string
 
   @Expose()
   @IsDateString()
