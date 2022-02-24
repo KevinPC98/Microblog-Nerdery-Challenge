@@ -15,7 +15,7 @@ passport.use(
           jti: jwtPayload.sub,
         },
         select: {
-          user: { select: { uuid: true } },
+          user: { select: { id: true } },
         },
         rejectOnNotFound: false,
       })
@@ -25,7 +25,7 @@ passport.use(
       }
 
       // this will pass in the user object only with the uuid property to the request object
-      return done(null, { uuid: token.user.uuid })
+      return done(null, { id: token.user.id })
     },
   ),
 )

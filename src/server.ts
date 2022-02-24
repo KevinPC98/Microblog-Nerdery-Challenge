@@ -1,5 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express'
 import { HttpError } from 'http-errors'
+import './middleware/passport'
+import passport from 'passport'
 import { plainToClass } from 'class-transformer'
 import morgan from 'morgan'
 import { HttpErrorDto } from './dtos/http-error.dto'
@@ -9,6 +11,7 @@ const app = express()
 const PORT = process.env.PORT || 3000
 const ENVIROMENT = process.env.NODE_ENV || 'development'
 
+app.use(passport.initialize())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
