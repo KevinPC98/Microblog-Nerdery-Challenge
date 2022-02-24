@@ -21,4 +21,8 @@ export class ResponsePostDto extends BaseDto {
   @Expose()
   @IsDateString()
   readonly createdAt: string
+
+  @Expose()
+  @IsDateString()
+  readonly updatedAt: string
 }

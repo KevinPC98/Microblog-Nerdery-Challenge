@@ -79,4 +79,28 @@ describe('PostService', () => {
       )
     })
   })
+
+  describe('update post', () => {
+    it('should update a post', async () => {
+      const createdPost = await prisma.post.create({
+        data: {
+          ...post,
+          userId: createduser.id,
+        },
+      })
+      const data = plainToClass(RequestPostDto, {
+        title: faker.name.title(),
+        content: faker.lorem.paragraph(),
+        isPublic: faker.datatype.boolean(),
+      })
+      const result = await PostService.update(createdPost.id)
+
+      expect(result).toHaveProperty('title', data.title)
+      expect(result).toHaveProperty('content', data.content)
+      expect(result).toHaveProperty('isPublic', data.isPublic)
+      expect(result).toHaveProperty('updatedAt')
+      expect(result).toHaveProperty('createdAt')
+    })
+    it('should return an error if post doesnt exist', () => {})
+  })
 })
