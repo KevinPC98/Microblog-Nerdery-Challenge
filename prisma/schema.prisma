@@ -48,6 +48,7 @@ model Post {
   content   String
   title     String
   isPublic  Boolean   @default(true) @map("is_public")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   createdAt DateTime  @default(now()) @map("created_at")
   comments  Comment[]
 
@@ -58,8 +59,8 @@ model Comment {
   id       String  @id @default(uuid())
   post     Post    @relation(fields: [postId], references: [id])
   postId   String  @map("post_id")
-  user     User    @relation(fields: [userId], references: [id])
   userId   String  @map("user_id")
+  user     User    @relation(fields: [userId], references: [id])
   content  String
   isPublic Boolean @default(true) @map("is_public")
 
@@ -69,8 +70,9 @@ model Comment {
 model Like {
   id         String  @id @default(uuid())
   likeItemId String
-  user       User    @relation(fields: [userId], references: [id])
   userId     String  @map("user_id")
+  user       User    @relation(fields: [userId], references: [id])
+  type       String  @map("type")
   like       Boolean
 
   @@map("likes")
@@ -79,8 +81,8 @@ model Like {
 model Report {
   id           String   @id @default(uuid())
   reportItemId String   @map("report_item_id")
-  user         User     @relation(fields: [userId], references: [id])
   userId       String   @map("user_id")
+  user         User     @relation(fields: [userId], references: [id])
   reason       String
   createdAt    DateTime @default(now()) @map("created_at")
   type         String   @map("type")

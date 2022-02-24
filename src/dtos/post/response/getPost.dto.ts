@@ -14,6 +14,11 @@ export class GetPostDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
+  readonly id: string
+
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
   readonly title: string
 
   @Expose()

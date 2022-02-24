@@ -7,6 +7,11 @@ export class ResponsePostDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
+  readonly id: string
+
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
   readonly title: string
 
   @Expose()
@@ -20,9 +25,9 @@ export class ResponsePostDto extends BaseDto {
 
   @Expose()
   @IsDateString()
-  readonly createdAt: string
+  readonly updatedAt: string
 
   @Expose()
   @IsDateString()
-  readonly updatedAt: string
+  readonly createdAt: string
 }
