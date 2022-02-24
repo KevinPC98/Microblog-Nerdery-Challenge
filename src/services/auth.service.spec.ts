@@ -2,9 +2,7 @@ import { plainToClass } from 'class-transformer'
 import faker from 'faker'
 import { Unauthorized } from 'http-errors'
 import { hashSync } from 'bcryptjs'
-//import jwt, { JsonWebTokenError } from 'jsonwebtoken'
 import { /* Unauthorized, */ NotFound } from 'http-errors'
-import { User } from '@prisma/client'
 import { LoginDto } from '../dtos/auths/request/login.dto'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
@@ -108,23 +106,23 @@ describe('AuthService', () => {
     })
 
     it('should create the token', async () => {
-      const user: User = {
-        id: faker.datatype.uuid(),
+      const user = plainToClass(CreateUserDto, {
         name: faker.name.firstName(),
         userName: faker.internet.userName(),
         email: faker.internet.email(),
         password: faker.internet.password(),
-        isActive: faker.datatype.boolean(),
-        isEmailPublic: faker.datatype.boolean(),
-        isNamePublic: faker.datatype.boolean(),
-        createdAt: faker.datatype.datetime(),
-        verifiedAt: faker.datatype.datetime(),
-        updatedAt: faker.datatype.datetime(),
-        role: 'U',
-      }
-      const result = await AuthService.createToken(user.id)
+      })
 
-      expect(result).toHaveProperty('userId', user.id)
+      const createduser = await prisma.user.create({
+        data: {
+          ...user,
+          password: hashSync(user.password, 10),
+          role: 'U',
+        },
+      })
+      const result = await AuthService.createToken(createduser.id)
+
+      expect(result).toHaveProperty('userId', createduser.id)
     })
   })
 
@@ -133,7 +131,7 @@ describe('AuthService', () => {
       const accessToken = faker.lorem.word()
       const result = AuthService.generateAccessToken(accessToken)
 
-      expect(result).toHaveProperty('accessToken', accessToken)
+      expect(result).toHaveProperty('accessToken')
     })
   })
 })

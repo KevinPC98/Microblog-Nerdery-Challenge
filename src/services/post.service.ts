@@ -74,21 +74,12 @@ export class PostService {
 
       return plainToClass(ResponsePostDto, updatedPost)
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        switch (error.code) {
-          case PrismaErrorEnum.NOT_FOUND:
-            throw new NotFound('Post not found')
-          default:
-            throw error
-        }
-      }
-
-      throw error
+      throw new NotFound('Post not found')
     }
   }
   static async delete(postId: string): Promise<boolean> {
     try {
-      const post = await prisma.post.delete({
+      await prisma.post.delete({
         where: {
           id: postId,
         },

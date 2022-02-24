@@ -50,13 +50,7 @@ export class UsersService {
         text: 'please confirm your email',
         html: `<strong>Token: ${tokenSign}</strong>`,
       }
-
-      try {
-        await sgMail.send(msg)
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(error)
-      }
+      await sgMail.send(msg)
     }
     sendEmail()
     return AuthService.generateAccessToken(token.jti)
@@ -132,9 +126,6 @@ export class UsersService {
         process.env.JWT_EMAIL_CONFIRMATION_SECRET_KEY as string,
       ))
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(error)
-
       throw new UnprocessableEntity('Invalid Token')
     }
 
