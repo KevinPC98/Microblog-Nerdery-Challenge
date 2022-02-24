@@ -8,6 +8,11 @@ export class ResponseCommentDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
+  readonly id: string
+
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
   readonly content: string
 
   @Expose()
