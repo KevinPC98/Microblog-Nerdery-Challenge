@@ -49,7 +49,6 @@ export async function signup(req: Request, res: Response): Promise<void> {
 
 export async function getProfile(req: Request, res: Response): Promise<void> {
   const user = req.user as User
-  //console.log('USERCONTROLLER: ' + user)
   const profileUser = await UsersService.getProfile(user.id)
   res.status(201).json(profileUser)
 }
