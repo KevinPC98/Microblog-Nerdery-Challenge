@@ -93,6 +93,12 @@ export class PostService {
           id: postId,
         },
       })
+      await prisma.like.deleteMany({
+        where: {
+          likeItemId: postId,
+          type: 'P',
+        },
+      })
       return true
     } catch (error) {
       throw new NotFound('Post not found')
