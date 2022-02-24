@@ -1,5 +1,6 @@
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
+import jwt from 'jsonwebtoken'
 import { UnprocessableEntity, NotFound } from 'http-errors'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
@@ -8,23 +9,23 @@ import { UsersService } from './user.service'
 import { AuthService } from './auth.service'
 
 describe('UserService', () => {
+  const objuser = plainToClass(CreateUserDto, {
+    name: faker.name.firstName(),
+    userName: faker.internet.userName(),
+    email: faker.internet.email(),
+    password: faker.internet.password(),
+    role: 'U',
+  })
+
+  const objuserTwo = plainToClass(CreateUserDto, {
+    name: faker.name.firstName(),
+    userName: faker.internet.userName(),
+    email: faker.internet.email(),
+    password: faker.internet.password(),
+    role: 'U',
+  })
+
   describe('update user', () => {
-    const objuser = plainToClass(CreateUserDto, {
-      name: faker.name.firstName(),
-      userName: faker.internet.userName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-      role: 'U',
-    })
-
-    const objuserTwo = plainToClass(CreateUserDto, {
-      name: faker.name.firstName(),
-      userName: faker.internet.userName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-      role: 'U',
-    })
-
     beforeEach(async () => {
       await prisma.user.create({
         data: {
@@ -104,42 +105,114 @@ describe('UserService', () => {
     })
   })
 
-  // describe('create', () => {
-  //   it('should throw an error if the user already exists', async () => {
-  //     const expected = new UnprocessableEntity('email already taken')
-  //     const value = plainToClass(CreateUserDto, {
-  //       name: 'name',
-  //       userName: 'userName',
-  //       email: 'user@ravn.com',
-  //       password: 'nerdery2022',
-  //       passwordConfirmation: 'nerdery2022',
-  //     })
-  //     const result = UsersService.create(value)
+  describe('create', () => {
+    beforeEach(async () => {
+      await prisma.user.create({
+        data: {
+          ...objuser,
+        },
+      })
+      await prisma.user.create({
+        data: {
+          ...objuserTwo,
+        },
+      })
+    })
+    afterEach(async () => {
+      await prisma.user.delete({
+        where: {
+          email: objuser.email,
+        },
+      })
+      await prisma.user.delete({
+        where: {
+          email: objuserTwo.email,
+        },
+      })
+    })
+    it('should return an error if the email has already been used', async () => {
+      const expected = new UnprocessableEntity('email belong other user')
+      const result = UsersService.create(objuser)
 
-  //     await expect(result).rejects.toThrowError(expected)
-  //   })
+      await expect(result).rejects.toThrowError(expected)
+    })
 
-  //   it('should create a new user and return a Token', async () => {
-  //     const spyCreateToken = jest.spyOn(AuthService, 'createToken')
-  //     const spyGenerateAccessToken = jest.spyOn(
-  //       AuthService,
-  //       'generateAccessToken',
-  //     )
-  //     const value = plainToClass(CreateUserDto, {
-  //       name: 'name',
-  //       userName: 'userName',
-  //       email: 'user@ravn.com',
-  //       password: 'nerdery2022',
-  //       passwordConfirmation: 'nerdery2022',
-  //     })
-  //     const result = await UsersService.create(value)
+    it('should return a token a create a new user', async () => {
+      const spyCreateToken = jest.spyOn(AuthService, 'createToken')
+      const spyGenerateAccessToken = jest.spyOn(
+        AuthService,
+        'generateAccessToken',
+      )
 
-  //     expect(spyCreateToken).toHaveBeenCalledOnce()
-  //     expect(spyGenerateAccessToken).toHaveBeenCalledOnce()
-  //     expect(result).toHaveProperty('accessToken', expect.any(String))
-  //     expect(result).toHaveProperty('exp', expect.any(Number))
-  //   })
-  // })
+      const result = await UsersService.create(objuser)
+
+      expect(spyCreateToken).toHaveBeenCalledOnce()
+      expect(spyGenerateAccessToken).toHaveBeenCalledOnce()
+      expect(result).toHaveProperty('accessToken', expect.any(String))
+      expect(result).toHaveProperty('exp', expect.any(Number))
+    })
+  })
+
+  describe('generateEmailConfirmationToken', () => {
+    it('should return the signed token', async () => {
+      const getUser = await prisma.user.findUnique({
+        where: {
+          email: objuser.email,
+        },
+        select: {
+          id: true,
+        },
+        rejectOnNotFound: false,
+      })
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const result = UsersService.generateEmailConfirmationToken(getUser!.id)
+
+      expect(result).toBeString()
+    })
+  })
+
+  describe('confirmAccount', () => {
+    const token = faker.random.word()
+    beforeEach(async () => {
+      await prisma.user.create({
+        data: {
+          ...objuser,
+        },
+      })
+      await prisma.user.create({
+        data: {
+          ...objuserTwo,
+        },
+      })
+    })
+    afterEach(async () => {
+      await prisma.user.delete({
+        where: {
+          email: objuser.email,
+        },
+      })
+      await prisma.user.delete({
+        where: {
+          email: objuserTwo.email,
+        },
+      })
+    })
+    it('should throw an error if the token is not valid', async () => {
+      const expected = new UnprocessableEntity('Invalid Token')
+      const result = UsersService.confirmAccount(token)
+      await expect(result).rejects.toThrowError(expected)
+    })
+
+    it('should throw an error if the token does not belong to user', async () => {
+      const expected = new UnprocessableEntity('Invalid Token')
+      jest
+        .spyOn(jwt, 'verify')
+        .mockImplementation(jest.fn(() => ({ sub: faker.datatype.uuid() })))
+      const result = UsersService.confirmAccount(token)
+
+      await expect(result).rejects.toThrowError(expected)
+    })
+  })
 
   describe('getProfile', () => {
     const objuser = plainToClass(CreateUserDto, {

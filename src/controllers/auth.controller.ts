@@ -52,3 +52,14 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
   const profileUser = await UsersService.getProfile(user.id)
   res.status(201).json(profileUser)
 }
+
+export async function confirmAccount(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  // eslint-disable-next-line no-console
+  console.log('QUERY: ' + req.query.token)
+  await UsersService.confirmAccount(req.query.token as string)
+
+  res.status(204).send({ message: 'Succesful email confirmation' })
+}

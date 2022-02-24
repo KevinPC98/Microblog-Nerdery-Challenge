@@ -3,6 +3,7 @@ import { UnprocessableEntity, NotFound } from 'http-errors'
 import sgMail from '@sendgrid/mail'
 import { hashSync } from 'bcryptjs'
 import { plainToClass } from 'class-transformer'
+import { sign, verify } from 'jsonwebtoken'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
 import { TokenDto } from '../dtos/auths/response/token.dto'
@@ -38,6 +39,8 @@ export class UsersService {
     })
     const token = await AuthService.createToken(user.id)
 
+    const tokenSign = this.generateEmailConfirmationToken(user.id)
+
     const sendEmail = async () => {
       sgMail.setApiKey(process.env.SENDGRID_API_KEY as string)
       const msg = {
@@ -45,9 +48,9 @@ export class UsersService {
         from: process.env.SENDGRID_SENDER_EMAIL as string,
         subject: 'Confirm Account',
         text: 'please confirm your email',
-        html: `<strong>Token: ${token}</strong>`,
+        html: `<strong>Token: ${tokenSign}</strong>`,
       }
-      //ES6
+
       try {
         await sgMail.send(msg)
       } catch (error) {
@@ -95,6 +98,73 @@ export class UsersService {
       return plainToClass(UserDto, user)
     } catch (error) {
       throw new NotFound('User not found')
+    }
+  }
+
+  static generateEmailConfirmationToken(userId: string): string {
+    const now = new Date().getTime()
+    const exp = Math.floor(
+      new Date(now).setSeconds(
+        parseInt(
+          process.env.JWT_EMAIL_CONFIRMATION_EXPIRATION_TIME as string,
+          10,
+        ),
+      ) / 1000,
+    )
+    const iat = Math.floor(now / 1000)
+
+    return sign(
+      {
+        sub: userId,
+        iat,
+        exp,
+      },
+      process.env.JWT_EMAIL_CONFIRMATION_SECRET_KEY as string,
+    )
+  }
+
+  static async confirmAccount(token: string): Promise<void> {
+    let sub
+
+    try {
+      ;({ sub } = verify(
+        token,
+        process.env.JWT_EMAIL_CONFIRMATION_SECRET_KEY as string,
+      ))
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error)
+
+      throw new UnprocessableEntity('Invalid Token')
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: sub as string },
+      select: { id: true, verifiedAt: true },
+      rejectOnNotFound: false,
+    })
+
+    if (!user) {
+      throw new UnprocessableEntity('Invalid Token')
+    }
+
+    if (user.verifiedAt) {
+      throw new UnprocessableEntity('Account already confirmed')
+    }
+
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          verifiedAt: new Date(),
+          isActive: true,
+        },
+      })
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error)
+
+      throw new UnprocessableEntity('Invalid Token')
     }
   }
 }

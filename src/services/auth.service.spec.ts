@@ -102,24 +102,24 @@ describe('AuthService', () => {
   describe('createToken', () => {
     it('should throw an error if the user does not exist', async () => {
       const expected = new NotFound('User not found')
-      const result = AuthService.createToken(expect.any(String))
+      const result = AuthService.createToken(faker.datatype.uuid())
 
       await expect(result).rejects.toThrowError(expected)
     })
 
     it('should create the token', async () => {
       const user: User = {
-        id: '6b3a5089-5a83-4a59-9a18-5247ddfa5201',
-        name: 'name',
-        userName: 'userName',
-        email: 'user@ravn.com',
-        password: 'nerdery2022',
-        isActive: false,
-        isEmailPublic: false,
-        isNamePublic: false,
-        createdAt: expect.any(Date),
-        verifiedAt: expect.any(Date),
-        updatedAt: expect.any(Date),
+        id: faker.datatype.uuid(),
+        name: faker.name.firstName(),
+        userName: faker.internet.userName(),
+        email: faker.internet.email(),
+        password: faker.internet.password(),
+        isActive: faker.datatype.boolean(),
+        isEmailPublic: faker.datatype.boolean(),
+        isNamePublic: faker.datatype.boolean(),
+        createdAt: faker.datatype.datetime(),
+        verifiedAt: faker.datatype.datetime(),
+        updatedAt: faker.datatype.datetime(),
         role: 'U',
       }
       const result = await AuthService.createToken(user.id)
@@ -130,9 +130,10 @@ describe('AuthService', () => {
 
   describe('generateAccessToken', () => {
     it('should generate a token', async () => {
-      const result = AuthService.generateAccessToken(expect.any(String))
+      const accessToken = faker.lorem.word()
+      const result = AuthService.generateAccessToken(accessToken)
 
-      expect(result).toHaveProperty('accessToken', '123.123.123')
+      expect(result).toHaveProperty('accessToken', accessToken)
     })
   })
 })

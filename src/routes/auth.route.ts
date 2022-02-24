@@ -7,6 +7,7 @@ import {
   logout,
   signup,
   getProfile,
+  confirmAccount,
 } from '../controllers/auth.controller'
 
 const router = express.Router()
@@ -27,5 +28,7 @@ export function authRoutes(): Router {
     )
 
   router.route('/profile').get(asyncHandler(getProfile))
+  router.route('/confirmAccount').post(asyncHandler(confirmAccount))
+
   return router
 }
