@@ -23,18 +23,35 @@ import {
 const router = express.Router()
 
 export function postRoutes(): Router {
-  router.route('/').post(asyncHandler(createPost))
+  router
+    .route('/')
+    .post(
+      passport.authenticate('jwt', { session: false }),
+      asyncHandler(createPost),
+    )
 
   router
     .route('/:id')
-    .post(asyncHandler(getPost))
-    .patch(asyncHandler(updatePost))
-    .delete(asyncHandler(deletePost))
+    .get(asyncHandler(getPost))
+    .patch(
+      passport.authenticate('jwt', { session: false }),
+      asyncHandler(updatePost),
+    )
+    .delete(
+      passport.authenticate('jwt', { session: false }),
+      asyncHandler(deletePost),
+    )
 
   router
     .route('/:id/like')
-    .patch(asyncHandler(createUpdateLikePost))
-    .delete(asyncHandler(deleteLikePost))
+    .patch(
+      passport.authenticate('jwt', { session: false }),
+      asyncHandler(createUpdateLikePost),
+    )
+    .delete(
+      passport.authenticate('jwt', { session: false }),
+      asyncHandler(deleteLikePost),
+    )
 
   router
     .route('/:id/comments')
