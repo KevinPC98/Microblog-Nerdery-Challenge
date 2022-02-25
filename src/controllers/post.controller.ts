@@ -27,16 +27,18 @@ export async function updatePost(req: Request, res: Response): Promise<void> {
   const dto = plainToClass(RequestPostDto, req.body)
   await dto.isValid()
   const postId = req.params.id as string
+  const user = req.user as User
 
-  const result = await PostService.update(postId, dto)
+  const result = await PostService.update(user.id, postId, dto)
 
   res.status(201).json(result)
 }
 
 export async function deletePost(req: Request, res: Response): Promise<void> {
   const postId = req.params.id as string
+  const user = req.user as User
 
-  await PostService.delete(postId)
+  await PostService.delete(user.id, postId)
 
   res.status(204).end()
 }

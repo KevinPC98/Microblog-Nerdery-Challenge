@@ -31,16 +31,16 @@ export class GetPostDto extends BaseDto {
   readonly isPublic: boolean
 
   @Expose()
-  @IsDateString()
-  readonly createdAt: string
-
-  @Expose()
   @IsNumber()
   readonly countLike: number
 
   @Expose()
   @IsNumber()
-  readonly countDislike: number
+  readonly countDisLike: number
+
+  @Expose()
+  @IsDateString()
+  readonly createdAt: string
 
   @Expose()
   readonly user: { userName: string }

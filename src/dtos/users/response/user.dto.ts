@@ -33,6 +33,10 @@ export class UserDto extends BaseDto {
   readonly isNamePublic: boolean
 
   @Expose()
+  @IsBoolean()
+  readonly isActive: boolean
+
+  @Expose()
   @IsDateString()
   readonly createdAt: string
 

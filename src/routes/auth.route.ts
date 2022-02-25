@@ -28,7 +28,7 @@ export function authRoutes(): Router {
     )
 
   router.route('/profile').get(asyncHandler(getProfile))
-  router.route('/confirmAccount').post(asyncHandler(confirmAccount))
+  router.route('/confirm-account').get(asyncHandler(confirmAccount))
 
   return router
 }
