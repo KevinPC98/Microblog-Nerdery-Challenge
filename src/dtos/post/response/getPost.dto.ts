@@ -43,5 +43,5 @@ export class GetPostDto extends BaseDto {
   readonly countDislike: number
 
   @Expose()
-  readonly user: UserDto
+  readonly user: { userName: string }
 }

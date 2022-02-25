@@ -1,5 +1,5 @@
 import { Expose, Exclude } from 'class-transformer'
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator'
+import { IsBoolean, IsNotEmpty, IsString, IsDateString } from 'class-validator'
 import { BaseDto } from '../../base.dto'
 import { UserDto } from '../../users/response/user.dto'
 
@@ -20,6 +20,10 @@ export class ResponseCommentDto extends BaseDto {
   readonly isPublic: boolean
 
   @Expose()
+  @IsDateString()
+  readonly createdAt: string
+
+  @Expose()
   @IsNotEmpty()
   readonly countLike: number
 
@@ -27,5 +31,6 @@ export class ResponseCommentDto extends BaseDto {
   @IsNotEmpty()
   readonly countDisLike: number
 
-  readonly user: UserDto
+  @Expose()
+  readonly user: { userName: string }
 }

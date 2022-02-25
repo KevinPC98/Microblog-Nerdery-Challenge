@@ -56,13 +56,15 @@ model Post {
 }
 
 model Comment {
-  id       String  @id @default(uuid())
-  post     Post    @relation(fields: [postId], references: [id])
-  postId   String  @map("post_id")
-  userId   String  @map("user_id")
-  user     User    @relation(fields: [userId], references: [id])
-  content  String
-  isPublic Boolean @default(true) @map("is_public")
+  id        String   @id @default(uuid())
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  isPublic  Boolean  @default(true) @map("is_public")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("comments")
 }
