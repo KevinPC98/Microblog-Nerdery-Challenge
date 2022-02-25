@@ -133,7 +133,7 @@ export class UsersService {
     })
 
     if (!user) {
-      throw new UnprocessableEntity('Invalid Token')
+      throw new NotFound('User not found')
     }
 
     if (user.verifiedAt) {
