@@ -2,6 +2,7 @@ import { plainToClass } from 'class-transformer'
 import faker from 'faker'
 import { Unauthorized } from 'http-errors'
 import { hashSync } from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 import { /* Unauthorized, */ NotFound } from 'http-errors'
 import { LoginDto } from '../dtos/auths/request/login.dto'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
@@ -128,10 +129,13 @@ describe('AuthService', () => {
 
   describe('generateAccessToken', () => {
     it('should generate a token', async () => {
+      const value = faker.lorem.word()
       const accessToken = faker.lorem.word()
-      const result = AuthService.generateAccessToken(accessToken)
 
-      expect(result).toHaveProperty('accessToken')
+      jest.spyOn(jwt, 'sign').mockImplementation(jest.fn(() => accessToken))
+      const result = AuthService.generateAccessToken(value)
+
+      expect(result).toHaveProperty('accessToken', accessToken)
     })
   })
 })

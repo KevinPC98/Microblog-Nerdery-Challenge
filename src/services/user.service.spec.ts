@@ -6,6 +6,7 @@ import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
 import { ProfileDto } from '../dtos/users/request/profile.dto'
 import { UsersService } from './user.service'
+import { AuthService } from './auth.service'
 
 describe('UserService', () => {
   const objuser = plainToClass(CreateUserDto, {
@@ -125,54 +126,35 @@ describe('UserService', () => {
       await expect(result).rejects.toThrowError(expected)
     })
 
-    it('should return a token a create a new user', async () => {
-      const accessToken =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyZGFkZDhlNi0zMTg0LTQ4NzMtYTI4OS01YmFmMTlkOWFhZjIiLCJpYXQiOjE2NDU3MjM4MzksImV4cCI6MTY0NTcyNjgwMH0.X5krO0u2GZ3voEKuhtd9FCic_GVWR5SnL8ivoYtxgOE'
-      const confirmationToken = ''
-      // const spyCreateToken = jest.spyOn(AuthService, 'createToken')
-      // const spyGenerateAccessToken = jest.spyOn(
-      //   AuthService,
-      //   'generateAccessToken',
-      // )
+    it('should return a token and create a new user', async () => {
+      const spyCreateToken = jest.spyOn(AuthService, 'createToken')
+      const spyGenerateAccessToken = jest.spyOn(
+        AuthService,
+        'generateAccessToken',
+      )
+      const data = plainToClass(CreateUserDto, {
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName(),
+        email: faker.internet.email(),
+        password: faker.internet.password(6),
+      })
 
-      const result = await UsersService.create(objuser)
+      const result = await UsersService.create(data)
 
-      // expect(spyCreateToken).toHaveBeenCalledOnce()
-      // expect(spyGenerateAccessToken).toHaveBeenCalledOnce()
+      expect(spyCreateToken).toHaveBeenCalledOnce()
+      expect(UsersService.generateEmailConfirmationToken).toHaveBeenCalledOnce()
+      expect(spyGenerateAccessToken).toHaveBeenCalledOnce()
       expect(result).toHaveProperty('accessToken', expect.any(String))
       expect(result).toHaveProperty('exp', expect.any(Number))
     })
   })
 
   describe('generateEmailConfirmationToken', () => {
-    afterEach(async () => {
-      await prisma.user.delete({
-        where: {
-          email: objuser.email,
-        },
-      })
-    })
-    it('should return the signed token', async () => {
-      await prisma.user.create({
-        data: {
-          ...objuser,
-        },
-      })
-      const getUser = await prisma.user.findUnique({
-        where: {
-          email: objuser.email,
-        },
-        select: {
-          id: true,
-        },
-        rejectOnNotFound: false,
-      })
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const result = await UsersService.generateEmailConfirmationToken(
-        getUser!.id,
-      )
+    it('should return the confirmation token', () => {
+      const data = faker.datatype.uuid()
+      const result = UsersService.generateEmailConfirmationToken(data)
 
-      expect(typeof result).toBe('string')
+      expect(result).toBeString()
     })
   })
 
