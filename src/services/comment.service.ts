@@ -1,4 +1,4 @@
-import { Unauthorized, NotFound } from 'http-errors'
+import { NotFound } from 'http-errors'
 import { plainToClass } from 'class-transformer'
 import { Prisma } from '@prisma/client'
 import { ResquestCommentDto } from '../dtos/comment/request/comment.dto'

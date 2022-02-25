@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import { NotFound } from 'http-errors'
 import { RequestLiketDto } from '../dtos/like/request/requestlike.dto'
 import { RequestPostDto } from '../dtos/post/request/requestpost.dto'
+import { LikeService } from '../services/like.service'
 import { PostService } from '../services/post.service'
 
 export async function createPost(req: Request, res: Response): Promise<void> {
@@ -50,7 +51,7 @@ export async function createUpdateLikePost(
 
   const postId = req.params.id as string
 
-  const result = await PostService.createUpdateLike(user.id, postId, dto)
+  const result = await LikeService.createUpdateLike('P', user.id, postId, dto)
 
   res.status(201).json(result)
 }
@@ -62,7 +63,7 @@ export async function deleteLikePost(
   const user = req.user as User
   const postId = req.params.id as string
 
-  await PostService.deleteLike(user.id, postId)
+  await LikeService.deleteLike('P', user.id, postId)
 
   res.status(204).end()
 }

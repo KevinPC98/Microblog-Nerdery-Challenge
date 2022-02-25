@@ -1,7 +1,5 @@
-import { Prisma } from '@prisma/client'
 import { plainToClass } from 'class-transformer'
 import { NotFound } from 'http-errors'
-import { RequestLiketDto } from '../dtos/like/request/requestlike.dto'
 import { RequestPostDto } from '../dtos/post/request/requestpost.dto'
 import { GetPostDto } from '../dtos/post/response/getPost.dto'
 import { ResponsePostDto } from '../dtos/post/response/responsepost.dto'
@@ -93,94 +91,6 @@ export class PostService {
       return true
     } catch (error) {
       throw new NotFound('Post not found')
-    }
-  }
-
-  static async createUpdateLike(
-    userId: string,
-    postId: string,
-    data: RequestLiketDto,
-  ): Promise<void> {
-    try {
-      const like = await prisma.like.findFirst({
-        where: {
-          type: 'P',
-          likeItemId: postId,
-          userId,
-        },
-        rejectOnNotFound: false,
-      })
-      const post = await prisma.post.findUnique({
-        where: {
-          id: postId,
-        },
-        rejectOnNotFound: false,
-      })
-
-      if (!post) throw new NotFound('Post not found')
-
-      if (!like) {
-        await prisma.like.create({
-          data: {
-            ...data,
-            userId: userId,
-            type: 'P',
-            likeItemId: postId,
-          },
-        })
-      } else {
-        await prisma.like.updateMany({
-          where: {
-            type: 'P',
-            likeItemId: postId,
-            userId: userId,
-          },
-          data: {
-            ...data,
-          },
-        })
-      }
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        switch (error.code) {
-          case PrismaErrorEnum.NOT_FOUND:
-            throw new NotFound('User not found')
-          default:
-            throw error
-        }
-      }
-      throw error
-    }
-  }
-
-  static async deleteLike(userId: string, postId: string): Promise<void> {
-    try {
-      const post = await prisma.post.findUnique({
-        where: {
-          id: postId,
-        },
-        rejectOnNotFound: false,
-      })
-
-      if (!post) throw new NotFound('Post not found')
-
-      await prisma.like.deleteMany({
-        where: {
-          userId: userId,
-          likeItemId: postId,
-          type: 'P',
-        },
-      })
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        switch (error.code) {
-          case PrismaErrorEnum.NOT_FOUND:
-            throw new NotFound('User not found')
-          default:
-            throw error
-        }
-      }
-      throw error
     }
   }
 }
