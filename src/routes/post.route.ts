@@ -66,8 +66,14 @@ export function postRoutes(): Router {
 
   router
     .route('/:id/comments/:commentId/like')
-    .patch(asyncHandler(updateLikeComment))
-    .delete(asyncHandler(deleteLikeComment))
+    .patch(
+      passport.authenticate('jwt', { session: false }),
+      asyncHandler(updateLikeComment),
+    )
+    .delete(
+      passport.authenticate('jwt', { session: false }),
+      asyncHandler(deleteLikeComment),
+    )
 
   return router
 }
