@@ -2,7 +2,7 @@ import { Post, User } from '@prisma/client'
 import { hashSync } from 'bcryptjs'
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
-import { UnprocessableEntity, NotFound } from 'http-errors'
+import { NotFound } from 'http-errors'
 import { ResquestCommentDto } from '../dtos/comment/request/comment.dto'
 import { ResponseCommentDto } from '../dtos/comment/response/comment.dto'
 import { RequestPostDto } from '../dtos/post/request/requestpost.dto'
@@ -56,27 +56,20 @@ describe('CommentService', () => {
       expect(responseComment).toHaveProperty('createdAt')
       expect(responseComment).toHaveProperty('isPublic')
       expect(responseComment).toHaveProperty('countLike')
-      expect(responseComment).toHaveProperty('countDislike')
+      expect(responseComment).toHaveProperty('countDisLike')
       expect(responseComment).toHaveProperty('user')
     })
 
     it('should return an error if the user does not exists', async () => {
       const userId = faker.datatype.uuid()
-      const postId = createdPost.id
-      await expect(
-        CommentService.create(userId, postId, comment),
-      ).rejects.toThrow(new NotFound('User do not exist'))
-    })
-
-    it('should return an error if the post does not exist', async () => {
-      const userId = createdUser.id
       const postId = faker.datatype.uuid()
 
       await expect(
         CommentService.create(userId, postId, comment),
-      ).rejects.toThrow(new NotFound('Post do not exist'))
+      ).rejects.toThrow(new NotFound("User or post doesn't exist"))
     })
   })
+
   describe('update', () => {
     const data = plainToClass(ResponseCommentDto, {
       content: faker.lorem.paragraph(),
@@ -95,11 +88,11 @@ describe('CommentService', () => {
         data,
       )
 
-      expect(commentUpdated).toHaveProperty('content', comment.content)
+      expect(commentUpdated).toHaveProperty('content', data.content)
       expect(commentUpdated).toHaveProperty('createdAt')
       expect(commentUpdated).toHaveProperty('isPublic')
       expect(commentUpdated).toHaveProperty('countLike')
-      expect(commentUpdated).toHaveProperty('countDislike')
+      expect(commentUpdated).toHaveProperty('countDisLike')
       expect(commentUpdated).toHaveProperty('user')
     })
 
@@ -111,6 +104,7 @@ describe('CommentService', () => {
       )
     })
   })
+
   describe('getComment', () => {
     it('should throw an error if the comment does not exist', async () => {
       const postId = faker.datatype.uuid()
@@ -134,7 +128,7 @@ describe('CommentService', () => {
       expect(getComment).toHaveProperty('isPublic')
       expect(getComment).toHaveProperty('createdAt')
       expect(getComment).toHaveProperty('countLike')
-      expect(getComment).toHaveProperty('countDislike')
+      expect(getComment).toHaveProperty('countDisLike')
       expect(getComment).toHaveProperty('user')
     })
   })
@@ -156,7 +150,7 @@ describe('CommentService', () => {
         },
       })
 
-      expect(await CommentService.delete(createdComment.id)).toBeTrue()
+      expect(await CommentService.delete(createdComment.id)).toBe(true)
     })
   })
 })
