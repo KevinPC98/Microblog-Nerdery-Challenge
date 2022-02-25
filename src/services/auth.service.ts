@@ -48,13 +48,7 @@ export class AuthService {
       })
       return token
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === PrismaErrorEnum.FOREIGN_KEY_CONSTRAINT) {
-          new NotFound('User not found')
-        }
-      }
-
-      throw error
+      throw new NotFound('User not found')
     }
   }
 

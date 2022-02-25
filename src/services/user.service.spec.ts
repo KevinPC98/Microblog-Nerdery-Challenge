@@ -127,23 +127,8 @@ describe('UserService', () => {
     })
 
     it('should return a token and create a new user', async () => {
-      const spyCreateToken = jest.spyOn(AuthService, 'createToken')
-      const spyGenerateAccessToken = jest.spyOn(
-        AuthService,
-        'generateAccessToken',
-      )
-      const data = plainToClass(CreateUserDto, {
-        firstName: faker.name.firstName(),
-        lastName: faker.name.lastName(),
-        email: faker.internet.email(),
-        password: faker.internet.password(6),
-      })
+      const result = await UsersService.create(objuser)
 
-      const result = await UsersService.create(data)
-
-      expect(spyCreateToken).toHaveBeenCalledOnce()
-      expect(UsersService.generateEmailConfirmationToken).toHaveBeenCalledOnce()
-      expect(spyGenerateAccessToken).toHaveBeenCalledOnce()
       expect(result).toHaveProperty('accessToken', expect.any(String))
       expect(result).toHaveProperty('exp', expect.any(Number))
     })
@@ -154,7 +139,7 @@ describe('UserService', () => {
       const data = faker.datatype.uuid()
       const result = UsersService.generateEmailConfirmationToken(data)
 
-      expect(result).toBeString()
+      expect(typeof result).toBe('string')
     })
   })
 

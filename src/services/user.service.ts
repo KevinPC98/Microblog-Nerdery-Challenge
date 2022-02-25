@@ -74,11 +74,8 @@ export class UsersService {
             throw new NotFound('User not found')
           case PrismaErrorEnum.DUPLICATED:
             throw new UnprocessableEntity('email already exist')
-          default:
-            throw error
         }
       }
-
       throw error
     }
   }

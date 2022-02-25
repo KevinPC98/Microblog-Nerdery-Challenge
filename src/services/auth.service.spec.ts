@@ -99,11 +99,10 @@ describe('AuthService', () => {
   })
 
   describe('createToken', () => {
-    it('should throw an error if the user does not exist', async () => {
-      const expected = new NotFound('User not found')
-      const result = AuthService.createToken(faker.datatype.uuid())
-
-      await expect(result).rejects.toThrowError(expected)
+    it('should throw an error when token ', async () => {
+      await expect(
+        AuthService.createToken(faker.datatype.uuid()),
+      ).rejects.toThrow(new NotFound('User not found'))
     })
 
     it('should create the token', async () => {
