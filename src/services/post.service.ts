@@ -1,5 +1,6 @@
+import { Prisma } from '@prisma/client'
 import { plainToClass } from 'class-transformer'
-import { NotFound } from 'http-errors'
+import { Unauthorized, NotFound } from 'http-errors'
 import { RequestPostDto } from '../dtos/post/request/requestpost.dto'
 import { GetPostDto } from '../dtos/post/response/getPost.dto'
 import { ResponsePostDto } from '../dtos/post/response/responsepost.dto'
@@ -17,9 +18,40 @@ export class PostService {
           ...data,
           userId,
         },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          isPublic: true,
+          updatedAt: true,
+          createdAt: true,
+          user: {
+            select: {
+              userName: true,
+            },
+          },
+        },
       })
 
-      return plainToClass(ResponsePostDto, post)
+      const countLike = await prisma.like.count({
+        where: {
+          likeItemId: post.id,
+          like: true,
+        },
+      })
+
+      const countDisLike = await prisma.like.count({
+        where: {
+          likeItemId: post.id,
+          like: false,
+        },
+      })
+
+      return plainToClass(ResponsePostDto, {
+        ...post,
+        countLike,
+        countDisLike,
+      })
     } catch (error) {
       throw new NotFound("user doesn't exist")
     }
@@ -31,6 +63,18 @@ export class PostService {
         where: {
           id: postId,
         },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          isPublic: true,
+          createdAt: true,
+          user: {
+            select: {
+              userName: true,
+            },
+          },
+        },
         rejectOnNotFound: true,
       })
 
@@ -40,16 +84,18 @@ export class PostService {
           like: true,
         },
       })
-      const countDislike = await prisma.like.count({
+
+      const countDisLike = await prisma.like.count({
         where: {
           likeItemId: postId,
-          like: true,
+          like: false,
         },
       })
+
       return plainToClass(GetPostDto, {
         ...post,
         countLike,
-        countDislike,
+        countDisLike,
       })
     } catch (error) {
       throw new NotFound("Post doesn't exist")
@@ -57,10 +103,21 @@ export class PostService {
   }
 
   static async update(
+    userId: string,
     postId: string,
     data: RequestPostDto,
   ): Promise<ResponsePostDto> {
     try {
+      const post = await prisma.post.findUnique({
+        where: {
+          id: postId,
+        },
+        rejectOnNotFound: true,
+      })
+
+      if (post?.userId !== userId)
+        throw new Unauthorized("User isn't authorized to update this post")
+
       const updatedPost = await prisma.post.update({
         where: {
           id: postId,
@@ -68,15 +125,58 @@ export class PostService {
         data: {
           ...data,
         },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          isPublic: true,
+          updatedAt: true,
+          createdAt: true,
+          user: {
+            select: {
+              userName: true,
+            },
+          },
+        },
       })
 
-      return plainToClass(ResponsePostDto, updatedPost)
+      const countLike = await prisma.like.count({
+        where: {
+          likeItemId: postId,
+          like: true,
+        },
+      })
+      const countDisLike = await prisma.like.count({
+        where: {
+          likeItemId: postId,
+          like: false,
+        },
+      })
+
+      return plainToClass(ResponsePostDto, {
+        ...updatedPost,
+        countLike,
+        countDisLike,
+      })
     } catch (error) {
-      throw new NotFound('Post not found')
+      // eslint-disable-next-line no-console
+      console.log((error as Error).message)
+      throw error
     }
   }
-  static async delete(postId: string): Promise<boolean> {
+
+  static async delete(userId: string, postId: string): Promise<boolean> {
     try {
+      const post = await prisma.post.findUnique({
+        where: {
+          id: postId,
+        },
+        rejectOnNotFound: true,
+      })
+
+      if (post?.userId !== userId)
+        throw new Unauthorized("User isn't authorized to update this post")
+
       await prisma.post.delete({
         where: {
           id: postId,
@@ -90,7 +190,9 @@ export class PostService {
       })
       return true
     } catch (error) {
-      throw new NotFound('Post not found')
+      // eslint-disable-next-line no-console
+      console.log((error as Error).message)
+      throw error
     }
   }
 }
