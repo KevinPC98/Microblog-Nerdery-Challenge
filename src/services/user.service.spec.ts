@@ -24,7 +24,7 @@ describe('UserService', () => {
     role: 'U',
   })
 
-  describe('update user', () => {
+  describe('Update', () => {
     beforeEach(async () => {
       await prisma.user.create({
         data: {
