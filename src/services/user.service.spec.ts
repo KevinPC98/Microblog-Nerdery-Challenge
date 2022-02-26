@@ -2,6 +2,7 @@ import { plainToClass } from 'class-transformer'
 import faker from 'faker'
 import jwt from 'jsonwebtoken'
 import { UnprocessableEntity, NotFound } from 'http-errors'
+import { User } from '@prisma/client'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
 import { ProfileDto } from '../dtos/users/request/profile.dto'
@@ -144,15 +145,11 @@ describe('UserService', () => {
 
   describe('confirmAccount', () => {
     const token = faker.random.word()
+    let createdUser: User
     beforeEach(async () => {
-      await prisma.user.create({
+      createdUser = await prisma.user.create({
         data: {
           ...objuser,
-        },
-      })
-      await prisma.user.create({
-        data: {
-          ...objuserTwo,
         },
       })
     })
@@ -160,11 +157,6 @@ describe('UserService', () => {
       await prisma.user.delete({
         where: {
           email: objuser.email,
-        },
-      })
-      await prisma.user.delete({
-        where: {
-          email: objuserTwo.email,
         },
       })
     })
@@ -188,12 +180,16 @@ describe('UserService', () => {
     it('should throw an error if the account of user already was confirmed', async () => {
       const expected = new UnprocessableEntity('Account already confirmed')
 
-      const userConfirmed = await prisma.user.create({
+      const userConfirmed = await prisma.user.update({
+        where: {
+          email: createdUser.email,
+        },
         data: {
-          ...objuser,
+          isActive: true,
+          verifiedAt: faker.datatype.datetime(),
         },
       })
-      userConfirmed.isActive = true
+
       jest
         .spyOn(jwt, 'verify')
         .mockImplementation(jest.fn(() => ({ sub: userConfirmed.id })))
@@ -202,15 +198,11 @@ describe('UserService', () => {
         expected,
       )
     })
+
     it('should confirm account of user', async () => {
-      const user = await prisma.user.create({
-        data: {
-          ...objuser,
-        },
-      })
       jest
         .spyOn(jwt, 'verify')
-        .mockImplementation(jest.fn(() => ({ sub: user.id })))
+        .mockImplementation(jest.fn(() => ({ sub: createdUser.id })))
 
       const result = await UsersService.confirmAccount(token)
 

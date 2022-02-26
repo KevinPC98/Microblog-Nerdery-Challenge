@@ -166,6 +166,7 @@ export class PostService {
   }
 
   static async delete(userId: string, postId: string): Promise<boolean> {
+    // eslint-disable-next-line no-useless-catch
     try {
       const post = await prisma.post.findUnique({
         where: {
@@ -190,8 +191,6 @@ export class PostService {
       })
       return true
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log((error as Error).message)
       throw error
     }
   }

@@ -91,6 +91,16 @@ export class CommentService {
           userId,
           postId,
         },
+        select: {
+          id: true,
+          content: true,
+          isPublic: true,
+          user: {
+            select: {
+              userName: true,
+            },
+          },
+        },
       })
 
       const countLike = await prisma.like.count({
@@ -108,26 +118,10 @@ export class CommentService {
         },
       })
 
-      const userFound = await prisma.comment.findUnique({
-        where: {
-          id: comment.id,
-        },
-        select: {
-          user: {
-            select: {
-              userName: true,
-            },
-          },
-        },
-      })
-
       return plainToClass(ResponseCommentDto, {
         ...comment,
         countLike: countLike,
         countDisLike: countDislike,
-        user: {
-          userName: userFound?.user.userName,
-        },
       })
     } catch (error) {
       throw new NotFound("User or post doesn't exist")
@@ -139,6 +133,16 @@ export class CommentService {
       const comment = await prisma.comment.findUnique({
         where: {
           id: commentId,
+        },
+        select: {
+          id: true,
+          content: true,
+          isPublic: true,
+          user: {
+            select: {
+              userName: true,
+            },
+          },
         },
         rejectOnNotFound: true,
       })
@@ -158,26 +162,10 @@ export class CommentService {
         },
       })
 
-      const userFound = await prisma.comment.findUnique({
-        where: {
-          id: commentId,
-        },
-        select: {
-          user: {
-            select: {
-              userName: true,
-            },
-          },
-        },
-      })
-
       return plainToClass(ResponseCommentDto, {
         ...comment,
         countLike: countLike,
         countDisLike: countDislike,
-        user: {
-          userName: userFound?.user.userName,
-        },
       })
     } catch (error) {
       throw new NotFound('Comment does not exist')
@@ -226,6 +214,16 @@ export class CommentService {
         data: {
           ...data,
         },
+        select: {
+          id: true,
+          content: true,
+          isPublic: true,
+          user: {
+            select: {
+              userName: true,
+            },
+          },
+        },
       })
 
       const countLike = await prisma.like.count({
@@ -243,23 +241,10 @@ export class CommentService {
         },
       })
 
-      const userFound = await prisma.comment.findUnique({
-        where: {
-          id: commentId,
-        },
-        select: {
-          user: {
-            select: {
-              userName: true,
-            },
-          },
-        },
-      })
       return plainToClass(ResponseCommentDto, {
         ...updatedComment,
         countLike,
         countDisLike: countDislike,
-        user: userFound?.user,
       })
     } catch (error) {
       throw error
@@ -293,7 +278,7 @@ export class CommentService {
       })
 
       if (dataFound.post.id !== postId) {
-        throw new Unauthorized('Post does not exist')
+        throw new Unauthorized('Post is invalid')
       }
 
       if (dataFound.user.id !== userId) {
@@ -316,6 +301,4 @@ export class CommentService {
       throw error
     }
   }
-  //createlike
-  //deletelike
 }

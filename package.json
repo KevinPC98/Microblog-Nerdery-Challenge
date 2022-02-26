@@ -54,6 +54,7 @@
     "faker": "^5.5.3",
     "jest": "^27.5.1",
     "jest-extended": "^2.0.0",
+    "jest-mock-extended": "^2.0.4",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.13",
     "prettier": "^2.4.1",

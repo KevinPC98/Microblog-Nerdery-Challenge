@@ -137,16 +137,12 @@ export class UsersService {
       throw new UnprocessableEntity('Account already confirmed')
     }
 
-    try {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          verifiedAt: new Date(),
-          isActive: true,
-        },
-      })
-    } catch (error) {
-      throw new UnprocessableEntity('Invalid Token')
-    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verifiedAt: new Date(),
+        isActive: true,
+      },
+    })
   }
 }

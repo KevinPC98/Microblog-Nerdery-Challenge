@@ -76,6 +76,11 @@ describe('CommentService', () => {
       }
     })
 
+    it("should return a comment's list if take or page are empty", async () => {
+      const result = await CommentService.getComments('', '', createdPost.id)
+      expect(result).toHaveProperty('comments')
+      expect(result).toHaveProperty('pagination')
+    })
     it("should return a first page of comment's list", async () => {
       const result = await CommentService.getComments('1', '5', createdPost.id)
       expect(result).toHaveProperty('comments')
@@ -149,16 +154,21 @@ describe('CommentService', () => {
     })
   })
 
-  describe('update', async () => {
+  describe('update', () => {
     const data = plainToClass(ResponseCommentDto, {
       content: faker.lorem.paragraph(),
     })
-    const createdComment = await prisma.comment.create({
-      data: {
-        ...comment,
-        userId: createdUser.id,
-        postId: createdPost.id,
-      },
+
+    let createdComment: Comment
+
+    beforeEach(async () => {
+      createdComment = await prisma.comment.create({
+        data: {
+          ...comment,
+          userId: createdUser.id,
+          postId: createdPost.id,
+        },
+      })
     })
     it('should an updated comment ', async () => {
       const commentUpdated = await CommentService.update(
@@ -226,7 +236,7 @@ describe('CommentService', () => {
 
       await expect(
         CommentService.update(createdUser.id, createdPost.id, commentId, data),
-      ).rejects.toThrow(new NotFound('Comment not found'))
+      ).rejects.toThrow(new NotFound('No Comment found'))
     })
   })
 
@@ -257,21 +267,14 @@ describe('CommentService', () => {
       expect(getComment).toHaveProperty('user')
     })
   })
-  describe('delete', async () => {
-    const createdComment = await prisma.comment.create({
-      data: {
-        ...comment,
-        userId: createdUser.id,
-        postId: createdPost.id,
-      },
-    })
 
+  describe('delete', () => {
     it('should throw an error if the comment does not exist', async () => {
       const commentId = faker.datatype.uuid()
 
       await expect(
         CommentService.delete(createdUser.id, createdPost.id, commentId),
-      ).rejects.toThrow(new NotFound('Comment not found'))
+      ).rejects.toThrow(new NotFound('No Comment found'))
     })
 
     it("should return an error if user try to delete a commnent that doesn't belong him", async () => {
@@ -284,36 +287,51 @@ describe('CommentService', () => {
           role: 'U',
         },
       })
-      it('should return an error if the post does not exits', async () => {
-        const postTwo = plainToClass(RequestPostDto, {
-          title: faker.name.title(),
-          content: faker.lorem.paragraph(),
-          isPublic: faker.datatype.boolean(),
-        })
-        const createdPostTwo = await prisma.post.create({
-          data: {
-            ...postTwo,
-            userId: createdUser.id,
-          },
-        })
-
-        await expect(
-          CommentService.delete(
-            createdUser.id,
-            createdPostTwo.id,
-            createdComment.id,
-          ),
-        ).rejects.toThrow(new Unauthorized('Post does not exist'))
+      const createdComment = await prisma.comment.create({
+        data: {
+          ...comment,
+          userId: createdUser.id,
+          postId: createdPost.id,
+        },
       })
       await expect(
         CommentService.delete(
           createduserTwo.id,
           createdPost.id,
-          createduserTwo.id,
+          createdComment.id,
         ),
       ).rejects.toThrow(
-        new Unauthorized("User isn't authorized to update this comment"),
+        new Unauthorized("User isn't authorized to delete this comment"),
       )
+    })
+
+    it('should return an error if the post is invalid', async () => {
+      const postTwo = plainToClass(RequestPostDto, {
+        title: faker.name.title(),
+        content: faker.lorem.paragraph(),
+        isPublic: faker.datatype.boolean(),
+      })
+      const createdPostTwo = await prisma.post.create({
+        data: {
+          ...postTwo,
+          userId: createdUser.id,
+        },
+      })
+      const createdComment = await prisma.comment.create({
+        data: {
+          ...comment,
+          userId: createdUser.id,
+          postId: createdPost.id,
+        },
+      })
+
+      await expect(
+        CommentService.delete(
+          createdUser.id,
+          createdPostTwo.id,
+          createdComment.id,
+        ),
+      ).rejects.toThrow(new Unauthorized('Post is invalid'))
     })
 
     it('should delete comment sucessfully', async () => {
