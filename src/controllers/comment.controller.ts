@@ -7,7 +7,13 @@ import { ResquestCommentDto } from '../dtos/comment/request/comment.dto'
 import { CommentService } from '../services/comment.service'
 
 export async function getComments(req: Request, res: Response): Promise<void> {
-  //
+  const page = req.query.page as string
+  const take = req.query.take as string
+  const postId = req.params.id
+
+  const result = await CommentService.getComments(page, take, postId)
+
+  res.status(200).json(result)
 }
 export async function createComment(
   req: Request,

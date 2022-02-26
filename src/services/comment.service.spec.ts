@@ -1,4 +1,4 @@
-import { Post, User } from '@prisma/client'
+import { Comment, Post, User } from '@prisma/client'
 import { hashSync } from 'bcryptjs'
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
@@ -42,7 +42,77 @@ describe('CommentService', () => {
     })
   })
   describe('read comments', () => {
-    //
+    let listComments: Comment[]
+    beforeAll(async () => {
+      for (let i = 0; i < 10; i++) {
+        const comment = await prisma.comment.create({
+          data: {
+            content: faker.lorem.paragraph(),
+            postId: createdPost.id,
+            userId: createdUser.id,
+          },
+        })
+        listComments.push(comment)
+      }
+    })
+    afterAll(async () => {
+      for (let i = 0; i < 10; i++) {
+        await prisma.comment.delete({
+          where: {
+            id: listComments[i].id,
+          },
+        })
+      }
+    })
+    describe('should return list of comments', () => {
+      it('should return a first page', async () => {
+        const result = await CommentService.getComments(
+          '1',
+          '5',
+          createdPost.id,
+        )
+
+        expect(result).toHaveProperty('comments')
+        expect(result).toHaveProperty('pagination')
+      })
+      it('should return a last page', async () => {
+        const result = await CommentService.getComments(
+          '2',
+          '5',
+          createdPost.id,
+        )
+
+        expect(result).toHaveProperty('comments')
+        expect(result).toHaveProperty('pagination')
+      })
+    })
+
+    it('should throw a error if post doent exist', async () => {
+      const postId = faker.datatype.uuid()
+      const expected = new NotFound('Post does not exist')
+
+      expect(
+        await CommentService.getComments('1', '10', postId),
+      ).rejects.toThrow(expected)
+    })
+
+    it('should throw an error if Page or Take are not numbers', async () => {
+      const expected = new Error("Page or take aren't numbers")
+
+      expect(
+        await CommentService.getComments('a', 'b', createdPost.id),
+      ).rejects.toThrow(expected)
+    })
+
+    it('should throw an error if the number of pages was exceeded', async () => {
+      const expected = new Error('Pages limit exceeded')
+      const page = '2'
+      const take = '10'
+
+      expect(
+        await CommentService.getComments(page, take, createdPost.id),
+      ).rejects.toThrow(expected)
+    })
   })
   describe('create', () => {
     it('should create a comment successfully', async () => {

@@ -5,9 +5,79 @@ import { ResquestCommentDto } from '../dtos/comment/request/comment.dto'
 import { ResponseCommentDto } from '../dtos/comment/response/comment.dto'
 import { prisma } from '../prisma'
 import { PrismaErrorEnum } from '../utils/enums'
+import { ListCommentDto } from '../dtos/comment/response/list-comment.dto'
 
 export class CommentService {
   //read comments
+  static async getComments(
+    page: string,
+    take: string,
+    postId: string,
+  ): Promise<ListCommentDto> {
+    // eslint-disable-next-line no-useless-catch
+    try {
+      const postFound = await prisma.post.findUnique({
+        where: {
+          id: postId,
+        },
+        rejectOnNotFound: false,
+      })
+      if (!postFound) {
+        throw new NotFound('Post does not exist')
+      }
+      const countCom = await prisma.comment.count({
+        where: {
+          postId,
+        },
+      })
+
+      const isNumber = /^0{0}[0-9]*$/
+      if (!isNumber.test(page) || !isNumber.test(take))
+        throw new Error("Page or take aren't numbers")
+
+      const pageNro = !page ? 1 : parseInt(page)
+      const takeNro = !take ? 10 : parseInt(take)
+
+      const totalPages = Math.ceil(countCom / takeNro)
+      if (pageNro > totalPages) {
+        throw new Error('Pages limit exceeded')
+      }
+
+      const comments = await prisma.comment.findMany({
+        skip: takeNro * (pageNro - 1),
+        take: takeNro,
+        where: {
+          postId,
+        },
+        select: {
+          id: true,
+          content: true,
+          isPublic: true,
+          user: {
+            select: {
+              userName: true,
+            },
+          },
+        },
+      })
+      const nextPage = pageNro === totalPages ? null : pageNro + 1
+      const previousPage = pageNro === 1 ? null : pageNro - 1
+
+      return plainToClass(ListCommentDto, {
+        comments,
+        pagination: {
+          totalPages,
+          itemsPerPage: takeNro,
+          totalItems: countCom,
+          currentPage: pageNro,
+          nextPage,
+          previousPage,
+        },
+      })
+    } catch (error) {
+      throw error
+    }
+  }
   //create
   static async create(
     userId: string,
