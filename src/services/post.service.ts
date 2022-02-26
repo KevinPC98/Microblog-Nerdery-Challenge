@@ -115,7 +115,7 @@ export class PostService {
         rejectOnNotFound: true,
       })
 
-      if (post?.userId !== userId)
+      if (post.userId !== userId)
         throw new Unauthorized("User isn't authorized to update this post")
 
       const updatedPost = await prisma.post.update({
@@ -174,7 +174,7 @@ export class PostService {
         rejectOnNotFound: true,
       })
 
-      if (post?.userId !== userId)
+      if (post.userId !== userId)
         throw new Unauthorized("User isn't authorized to update this post")
 
       await prisma.post.delete({
