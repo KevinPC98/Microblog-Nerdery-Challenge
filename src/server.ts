@@ -23,7 +23,7 @@ function errorHandler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction,
 ): void {
-  if (ENVIROMENT === 'development') {
+  if (ENVIROMENT !== 'development') {
     // eslint-disable-next-line no-console
     console.error(err.message)
   }
