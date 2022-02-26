@@ -7,9 +7,6 @@ import { sign, verify } from 'jsonwebtoken'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
 import { TokenDto } from '../dtos/auths/response/token.dto'
-//import { UserDto } from '../dtos/users/response/user.dto'
-//import { emitter } from '../events'
-//import { USER_EMAIL_CONFIRMATION } from '../events/mail.event'
 import { ProfileDto } from '../dtos/users/request/profile.dto'
 import { UserDto } from '../dtos/users/response/user.dto'
 import { PrismaErrorEnum } from '../utils/enums'
@@ -149,9 +146,6 @@ export class UsersService {
         },
       })
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(error)
-
       throw new UnprocessableEntity('Invalid Token')
     }
   }

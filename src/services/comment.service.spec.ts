@@ -2,7 +2,7 @@ import { Comment, Post, User } from '@prisma/client'
 import { hashSync } from 'bcryptjs'
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
-import { NotFound } from 'http-errors'
+import { NotFound, Unauthorized } from 'http-errors'
 import { ResquestCommentDto } from '../dtos/comment/request/comment.dto'
 import { ResponseCommentDto } from '../dtos/comment/response/comment.dto'
 import { RequestPostDto } from '../dtos/post/request/requestpost.dto'
@@ -140,20 +140,21 @@ describe('CommentService', () => {
     })
   })
 
-  describe('update', () => {
+  describe('update', async () => {
     const data = plainToClass(ResponseCommentDto, {
       content: faker.lorem.paragraph(),
     })
-
+    const createdComment = await prisma.comment.create({
+      data: {
+        ...comment,
+        userId: createdUser.id,
+        postId: createdPost.id,
+      },
+    })
     it('should an updated comment ', async () => {
-      const createdComment = await prisma.comment.create({
-        data: {
-          ...comment,
-          userId: createdUser.id,
-          postId: createdPost.id,
-        },
-      })
       const commentUpdated = await CommentService.update(
+        createdUser.id,
+        createdPost.id,
         createdComment.id,
         data,
       )
@@ -165,13 +166,58 @@ describe('CommentService', () => {
       expect(commentUpdated).toHaveProperty('countDisLike')
       expect(commentUpdated).toHaveProperty('user')
     })
+    it("should return an error if user try to update a comment that doesn't belong him", async () => {
+      const createduserTwo = await prisma.user.create({
+        data: {
+          name: faker.name.firstName(),
+          userName: faker.internet.userName(),
+          email: faker.internet.email(),
+          password: hashSync('12345', 10),
+          role: 'U',
+        },
+      })
+
+      await expect(
+        CommentService.update(
+          createduserTwo.id,
+          createdPost.id,
+          createdComment.id,
+          data,
+        ),
+      ).rejects.toThrow(
+        new Unauthorized("User isn't authorized to update this comment"),
+      )
+    })
+
+    it('should return an error if the post does not exits', async () => {
+      const postTwo = plainToClass(RequestPostDto, {
+        title: faker.name.title(),
+        content: faker.lorem.paragraph(),
+        isPublic: faker.datatype.boolean(),
+      })
+      const createdPostTwo = await prisma.post.create({
+        data: {
+          ...postTwo,
+          userId: createdUser.id,
+        },
+      })
+
+      await expect(
+        CommentService.update(
+          createdUser.id,
+          createdPostTwo.id,
+          createdComment.id,
+          data,
+        ),
+      ).rejects.toThrow(new Unauthorized('Post does not exist'))
+    })
 
     it('should throw an error if the comment does not exist', async () => {
       const commentId = faker.datatype.uuid()
 
-      await expect(CommentService.update(commentId, data)).rejects.toThrow(
-        new NotFound('Comment not found'),
-      )
+      await expect(
+        CommentService.update(createdUser.id, createdPost.id, commentId, data),
+      ).rejects.toThrow(new NotFound('Comment not found'))
     })
   })
 
@@ -202,12 +248,62 @@ describe('CommentService', () => {
       expect(getComment).toHaveProperty('user')
     })
   })
-  describe('delete', () => {
+  describe('delete', async () => {
+    const createdComment = await prisma.comment.create({
+      data: {
+        ...comment,
+        userId: createdUser.id,
+        postId: createdPost.id,
+      },
+    })
+
     it('should throw an error if the comment does not exist', async () => {
       const commentId = faker.datatype.uuid()
 
-      await expect(CommentService.delete(commentId)).rejects.toThrow(
-        new NotFound('Comment not found'),
+      await expect(
+        CommentService.delete(createdUser.id, createdPost.id, commentId),
+      ).rejects.toThrow(new NotFound('Comment not found'))
+    })
+
+    it("should return an error if user try to delete a commnent that doesn't belong him", async () => {
+      const createduserTwo = await prisma.user.create({
+        data: {
+          name: faker.name.firstName(),
+          userName: faker.internet.userName(),
+          email: faker.internet.email(),
+          password: hashSync('12345', 10),
+          role: 'U',
+        },
+      })
+      it('should return an error if the post does not exits', async () => {
+        const postTwo = plainToClass(RequestPostDto, {
+          title: faker.name.title(),
+          content: faker.lorem.paragraph(),
+          isPublic: faker.datatype.boolean(),
+        })
+        const createdPostTwo = await prisma.post.create({
+          data: {
+            ...postTwo,
+            userId: createdUser.id,
+          },
+        })
+
+        await expect(
+          CommentService.delete(
+            createdUser.id,
+            createdPostTwo.id,
+            createdComment.id,
+          ),
+        ).rejects.toThrow(new Unauthorized('Post does not exist'))
+      })
+      await expect(
+        CommentService.delete(
+          createduserTwo.id,
+          createdPost.id,
+          createduserTwo.id,
+        ),
+      ).rejects.toThrow(
+        new Unauthorized("User isn't authorized to update this comment"),
       )
     })
 
@@ -220,7 +316,13 @@ describe('CommentService', () => {
         },
       })
 
-      expect(await CommentService.delete(createdComment.id)).toBe(true)
+      expect(
+        await CommentService.delete(
+          createdUser.id,
+          createdPost.id,
+          createdComment.id,
+        ),
+      ).toBe(true)
     })
   })
 })

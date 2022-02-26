@@ -47,8 +47,10 @@ export async function updateComment(
   const dto = plainToClass(ResquestCommentDto, req.body)
   await dto.isValid()
   const commentId = req.params.commentId as string
+  const postId = req.params.id as string
+  const user = req.user as User
 
-  const result = await CommentService.update(commentId, dto)
+  const result = await CommentService.update(user.id, postId, commentId, dto)
 
   res.status(201).json(result)
 }
@@ -58,8 +60,10 @@ export async function deleteComment(
   res: Response,
 ): Promise<void> {
   const commentId = req.params.commentId as string
+  const user = req.user as User
+  const postId = req.params.id as string
 
-  await CommentService.delete(commentId)
+  await CommentService.delete(user.id, postId, commentId)
 
   res.status(204).send({ message: 'Comment deleted succesfully' })
 }

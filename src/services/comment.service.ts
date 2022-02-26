@@ -1,4 +1,4 @@
-import { NotFound } from 'http-errors'
+import { Unauthorized, NotFound } from 'http-errors'
 import { plainToClass } from 'class-transformer'
 import { Prisma } from '@prisma/client'
 import { ResquestCommentDto } from '../dtos/comment/request/comment.dto'
@@ -185,10 +185,38 @@ export class CommentService {
   }
   //update
   static async update(
+    userId: string,
+    postId: string,
     commentId: string,
     data: ResquestCommentDto,
   ): Promise<ResponseCommentDto> {
     try {
+      const dataFound = await prisma.comment.findUnique({
+        where: {
+          id: commentId,
+        },
+        select: {
+          user: {
+            select: {
+              id: true,
+            },
+          },
+          post: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      })
+
+      if (dataFound?.user.id !== userId) {
+        throw new Unauthorized("User isn't authorized to update this comment")
+      }
+
+      if (dataFound?.post.id !== postId) {
+        throw new Unauthorized('Post does not exist')
+      }
+
       const updatedComment = await prisma.comment.update({
         where: {
           id: commentId,
@@ -236,8 +264,38 @@ export class CommentService {
     }
   }
   //delete
-  static async delete(commentId: string): Promise<boolean> {
+  static async delete(
+    userId: string,
+    postId: string,
+    commentId: string,
+  ): Promise<boolean> {
     try {
+      const dataFound = await prisma.comment.findUnique({
+        where: {
+          id: commentId,
+        },
+        select: {
+          user: {
+            select: {
+              id: true,
+            },
+          },
+          post: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      })
+
+      if (dataFound?.user.id !== userId) {
+        throw new Unauthorized("User isn't authorized to update this comment")
+      }
+
+      if (dataFound?.post.id !== postId) {
+        throw new Unauthorized('Post does not exist')
+      }
+
       await prisma.comment.delete({
         where: {
           id: commentId,

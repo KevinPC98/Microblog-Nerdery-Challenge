@@ -6,7 +6,6 @@ import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
 import { ProfileDto } from '../dtos/users/request/profile.dto'
 import { UsersService } from './user.service'
-import { AuthService } from './auth.service'
 
 describe('UserService', () => {
   const objuser = plainToClass(CreateUserDto, {
@@ -169,20 +168,53 @@ describe('UserService', () => {
         },
       })
     })
+
     it('should throw an error if the token is not valid', async () => {
       const expected = new UnprocessableEntity('Invalid Token')
       const result = UsersService.confirmAccount(token)
       await expect(result).rejects.toThrowError(expected)
     })
 
-    it('should throw an error if the token does not belong to user', async () => {
-      const expected = new UnprocessableEntity('Invalid Token')
+    it('should throw an error if the user does not exists', async () => {
+      const expected = new NotFound('User not found')
       jest
         .spyOn(jwt, 'verify')
         .mockImplementation(jest.fn(() => ({ sub: faker.datatype.uuid() })))
       const result = UsersService.confirmAccount(token)
 
       await expect(result).rejects.toThrowError(expected)
+    })
+
+    it('should throw an error if the account of user already was confirmed', async () => {
+      const expected = new UnprocessableEntity('Account already confirmed')
+
+      const userConfirmed = await prisma.user.create({
+        data: {
+          ...objuser,
+        },
+      })
+      userConfirmed.isActive = true
+      jest
+        .spyOn(jwt, 'verify')
+        .mockImplementation(jest.fn(() => ({ sub: userConfirmed.id })))
+
+      await expect(UsersService.confirmAccount(token)).rejects.toThrowError(
+        expected,
+      )
+    })
+    it('should confirm account of user', async () => {
+      const user = await prisma.user.create({
+        data: {
+          ...objuser,
+        },
+      })
+      jest
+        .spyOn(jwt, 'verify')
+        .mockImplementation(jest.fn(() => ({ sub: user.id })))
+
+      const result = await UsersService.confirmAccount(token)
+
+      expect(result).toBeUndefined()
     })
   })
 
