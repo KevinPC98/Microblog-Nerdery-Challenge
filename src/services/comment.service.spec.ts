@@ -11,28 +11,30 @@ import { prisma } from '../prisma'
 import { CommentService } from './comment.service'
 
 describe('CommentService', () => {
-  let createdUser: User
-  let createdPost: Post
   const comment = plainToClass(ResquestCommentDto, {
     content: faker.lorem.paragraph(),
   })
-  beforeEach(async () => {
-    const user = plainToClass(CreateUserDto, {
-      name: faker.name.firstName(),
-      userName: faker.internet.userName(),
-      email: faker.internet.email(),
-    })
+  let createdUser: User
+  let createdPost: Post
+
+  const user = plainToClass(CreateUserDto, {
+    name: faker.name.firstName(),
+    userName: faker.internet.userName(),
+    email: faker.internet.email(),
+  })
+  const post = plainToClass(RequestPostDto, {
+    title: faker.name.title(),
+    content: faker.lorem.paragraph(),
+    isPublic: faker.datatype.boolean(),
+  })
+
+  beforeAll(async () => {
     createdUser = await prisma.user.create({
       data: {
         ...user,
         password: hashSync('12345', 10),
         role: 'U',
       },
-    })
-    const post = plainToClass(RequestPostDto, {
-      title: faker.name.title(),
-      content: faker.lorem.paragraph(),
-      isPublic: faker.datatype.boolean(),
     })
     createdPost = await prisma.post.create({
       data: {
@@ -41,10 +43,19 @@ describe('CommentService', () => {
       },
     })
   })
+  afterAll(async () => {
+    await prisma.user.delete({
+      where: {
+        email: createdUser.email,
+      },
+    })
+  })
+
   describe('read comments', () => {
-    let listComments: Comment[]
+    const listComments: Comment[] = []
+    const commentLength = 15
     beforeAll(async () => {
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < commentLength; i++) {
         const comment = await prisma.comment.create({
           data: {
             content: faker.lorem.paragraph(),
@@ -56,7 +67,7 @@ describe('CommentService', () => {
       }
     })
     afterAll(async () => {
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < commentLength; i++) {
         await prisma.comment.delete({
           where: {
             id: listComments[i].id,
@@ -64,56 +75,54 @@ describe('CommentService', () => {
         })
       }
     })
-    describe('should return list of comments', () => {
-      it('should return a first page', async () => {
-        const result = await CommentService.getComments(
-          '1',
-          '5',
-          createdPost.id,
-        )
 
-        expect(result).toHaveProperty('comments')
-        expect(result).toHaveProperty('pagination')
-      })
-      it('should return a last page', async () => {
-        const result = await CommentService.getComments(
-          '2',
-          '5',
-          createdPost.id,
-        )
+    it("should return a first page of comment's list", async () => {
+      const result = await CommentService.getComments('1', '5', createdPost.id)
+      expect(result).toHaveProperty('comments')
+      expect(result).toHaveProperty('pagination')
+    })
 
-        expect(result).toHaveProperty('comments')
-        expect(result).toHaveProperty('pagination')
-      })
+    it("should return a page of comment's list", async () => {
+      const result = await CommentService.getComments('2', '5', createdPost.id)
+      expect(result).toHaveProperty('comments')
+      expect(result).toHaveProperty('pagination')
+    })
+
+    it("should return a last page of comment's list", async () => {
+      const result = await CommentService.getComments('3', '5', createdPost.id)
+
+      expect(result).toHaveProperty('comments')
+      expect(result).toHaveProperty('pagination')
     })
 
     it('should throw a error if post doent exist', async () => {
       const postId = faker.datatype.uuid()
       const expected = new NotFound('Post does not exist')
 
-      expect(
-        await CommentService.getComments('1', '10', postId),
+      await expect(
+        CommentService.getComments('1', '10', postId),
       ).rejects.toThrow(expected)
     })
 
     it('should throw an error if Page or Take are not numbers', async () => {
       const expected = new Error("Page or take aren't numbers")
 
-      expect(
-        await CommentService.getComments('a', 'b', createdPost.id),
+      await expect(
+        CommentService.getComments('a', 'b', createdPost.id),
       ).rejects.toThrow(expected)
     })
 
     it('should throw an error if the number of pages was exceeded', async () => {
       const expected = new Error('Pages limit exceeded')
-      const page = '2'
+      const page = '3'
       const take = '10'
 
-      expect(
-        await CommentService.getComments(page, take, createdPost.id),
+      await expect(
+        CommentService.getComments(page, take, createdPost.id),
       ).rejects.toThrow(expected)
     })
   })
+
   describe('create', () => {
     it('should create a comment successfully', async () => {
       const responseComment = await CommentService.create(
@@ -202,6 +211,7 @@ describe('CommentService', () => {
       expect(getComment).toHaveProperty('user')
     })
   })
+
   describe('delete', () => {
     it('should throw an error if the comment does not exist', async () => {
       const commentId = faker.datatype.uuid()
