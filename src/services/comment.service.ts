@@ -190,6 +190,7 @@ export class CommentService {
     commentId: string,
     data: ResquestCommentDto,
   ): Promise<ResponseCommentDto> {
+    // eslint-disable-next-line no-useless-catch
     try {
       const dataFound = await prisma.comment.findUnique({
         where: {
@@ -207,14 +208,15 @@ export class CommentService {
             },
           },
         },
+        rejectOnNotFound: true,
       })
 
-      if (dataFound?.user.id !== userId) {
-        throw new Unauthorized("User isn't authorized to update this comment")
+      if (dataFound.post.id !== postId) {
+        throw new Unauthorized('Post does not exist')
       }
 
-      if (dataFound?.post.id !== postId) {
-        throw new Unauthorized('Post does not exist')
+      if (dataFound.user.id !== userId) {
+        throw new Unauthorized("User isn't authorized to update this comment")
       }
 
       const updatedComment = await prisma.comment.update({
@@ -260,7 +262,7 @@ export class CommentService {
         user: userFound?.user,
       })
     } catch (error) {
-      throw new NotFound('Comment not found')
+      throw error
     }
   }
   //delete
@@ -269,6 +271,7 @@ export class CommentService {
     postId: string,
     commentId: string,
   ): Promise<boolean> {
+    // eslint-disable-next-line no-useless-catch
     try {
       const dataFound = await prisma.comment.findUnique({
         where: {
@@ -286,14 +289,15 @@ export class CommentService {
             },
           },
         },
+        rejectOnNotFound: true,
       })
 
-      if (dataFound?.user.id !== userId) {
-        throw new Unauthorized("User isn't authorized to update this comment")
+      if (dataFound.post.id !== postId) {
+        throw new Unauthorized('Post does not exist')
       }
 
-      if (dataFound?.post.id !== postId) {
-        throw new Unauthorized('Post does not exist')
+      if (dataFound.user.id !== userId) {
+        throw new Unauthorized("User isn't authorized to delete this comment")
       }
 
       await prisma.comment.delete({
@@ -309,7 +313,7 @@ export class CommentService {
       })
       return true
     } catch (error) {
-      throw new NotFound('Comment not found')
+      throw error
     }
   }
   //createlike
