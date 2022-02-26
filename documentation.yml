@@ -1,0 +1,790 @@
+openapi: 3.0.0
+info:
+  title: Microblog API
+  description: |
+    Microblog API.
+  version: 1.0.0
+tags:
+  - name: Auth
+    description: Users authentication 
+  - name: Posts
+    description: CRUD of posts 
+  - name: Comments
+    description: CRUD of comments
+
+paths:
+  /auth/login:
+    post:
+      summary: A user login
+      description: Endpoint used to authenticate users
+      tags:
+      - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/requestLoginDTO"
+      responses:
+        '201':
+          description: successful login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/responseLoginDTO"
+        '400':
+          description: email and password aren't corrects
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code400"
+    
+  /auth/signup:
+    post:
+      summary: A user sign up
+      description: Endpoint used to register users
+      tags:
+      - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/requestSignupDTO"
+      responses:
+        '201':
+          description: successful sign up 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/responseSignupDTO"
+        '409':
+          description: email is currently being used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code400"
+        '400':
+          description: Passwords must be the same
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code400"
+  /auth/profile:
+    get:
+      summary: Return a user's profile
+      description: Endpoint used to get user's information
+      security:
+        - bearerAuth: []
+      tags:
+      - Auth
+      responses:
+        '200':
+          description: This will return a user's profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userDTO"
+    
+    patch:
+      summary: Update a user's profile
+      description: Endpoint used to update user's information
+      security:
+        - bearerAuth: []
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateUserDTO"
+      responses:
+        '201':
+          description: This will update a user's profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userDTO"
+  
+  /auth/forgot-password:
+    post:
+      summary: User forgot password
+      description: Endpoint used to return an temporal password
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: 
+                  type: string
+                  example: example@gmail.com
+      responses:
+        '201':
+          description: return 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email: 
+                    type: string
+                    example: example@gmail.com
+                  
+                  tempPassword: 
+                    type: string
+                    example: sd@f3$9^9k#
+                
+  /auth/logout:
+    post:
+      summary: User logout
+      description: Endpoint used to exit the session
+      security:
+        - bearerAuth: []
+      tags:
+      - Auth
+      responses: 
+        '204': 
+          description: user logout successfully
+  
+  /posts:
+    post:
+      summary: Create a post
+      security:
+        - bearerAuth: []
+      tags:
+        - Posts
+      description:  Endpoint used to create a post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/requestPostDTO"
+      responses:
+        '201':
+          description: return a list of posts  
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/responsePostDTO"
+        '400':
+          description: The specified parameters are not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code400"
+        '500':
+          description: A general error occurred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code500"
+    
+  /posts/{postId}:
+    parameters:
+      - $ref: "#/components/parameters/postId"
+    get:
+      summary: Get post user
+      tags:
+        - Posts
+      description:  Endpoint used to return a post
+      responses:
+        '200':
+          description: return a post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/responsePostDTO"
+        '500':
+          description: A general error occurred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code500"
+
+    patch:
+      summary: Partial update a specific post
+      security:
+        - bearerAuth: []
+      tags:
+        - Posts
+      description:  This endpoint is used to update a specific post
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateReqPostDTO"
+      responses:
+        '200':
+          description: return a list of posts  
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/responsePostDTO"
+        '404':
+          description: post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code404"
+                
+        '500':
+          description: A general error occurred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code500"
+    
+    delete:
+      summary: Delete a specific post by id
+      security:
+        - bearerAuth: []
+      tags:
+        - Posts
+      description: Endpoint used to delete a specific post
+      responses:
+        '204':
+          description: return a list of posts  
+        '404':
+          description: post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code404"
+                  
+        '500':
+          description: A general error occurred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code500"
+                
+  /posts/{postId}/like:
+    parameters:
+    - $ref: "#/components/parameters/postId"
+        
+    patch:
+      tags: 
+        - Posts
+      security:
+        - bearerAuth: []
+      summary: Update like
+      description: Endpoint used to update a Like
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestLikeDTO'
+      responses:
+        '200':
+          description: The like object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/message'
+        '404':
+          description: like not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code404"
+                  
+        '500':
+          description: A general error occurred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code500"
+        
+    delete:
+      tags: 
+        - Posts
+      security:
+        - bearerAuth: []
+      summary: User removes his like
+      description: Endpoint used to remove a Like
+      parameters:
+        - $ref: "#/components/parameters/postId"
+      responses:
+        '204':
+          description: like removed
+        '404':
+          description: like not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code404"
+                  
+        '500':
+          description: A general error occurred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code500"
+        
+
+  /posts/{postId}/comments:
+    parameters:
+      - $ref: "#/components/parameters/postId"
+      - $ref: "#/components/parameters/take"
+      - $ref: "#/components/parameters/page"
+    get:
+      tags:
+        - Comments
+      summary: Returns comments from post
+      description: Endpoint used to return a list of comments
+      responses:
+        '200':
+          description: Comments returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items: 
+                          $ref: '#/components/schemas/commentDTO'
+                      pagination:
+                        type: object
+                        description: Pagination
+                        properties:
+                          totalPages:
+                            type: number
+                            example: 0
+                          itemsPerPage:
+                            type: number
+                            example: 0
+                          totalItems:
+                            type: number
+                            example: 0
+                          currentPage:
+                            type: number
+                            example: 0
+                          nextPage:
+                            type: number
+                            example: 0
+                          previousPage:
+                            type: number
+                            example: 0
+        '404':
+          description: Post doesn't exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code404"
+    
+    post:
+      tags:
+        - Comments
+      security:
+        - bearerAuth: []
+      summary: Send a comment
+      description: Endpoint used to create a comment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestCommentDTO'
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/commentDTO'
+    
+  /posts/{postId}/comments/{commentId}:
+    parameters: 
+      - $ref: "#/components/parameters/postId"
+      - $ref: "#/components/parameters/commentId"
+
+    get:
+      tags:
+        - Comments
+      summary: Read a comment
+      description: Endpoint used to get a comment
+      responses:
+        '200':
+          description: Comment object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/commentDTO'
+        '400':
+          description: Comment doesn't exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/code404"
+  
+    patch:
+      tags: 
+        - Comments
+      security:
+        - bearerAuth: []
+      summary: Update comment
+      description: Endpoint used to update a comment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestCommentDTO'
+      responses:
+        '200':
+          description: The comment object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/commentDTO'
+  
+    delete:
+      tags: 
+        - Comments
+      security:
+        - bearerAuth: []
+      summary: Delete a comment
+      description: Endpoint used to delete a comment
+      responses:
+        '200':
+          description: Comment deleted
+  
+  /posts/{postId}/comments/{commentId}/like:
+    parameters: 
+      - $ref: "#/components/parameters/postId"
+      - $ref: "#/components/parameters/commentId"
+    
+    patch:
+      tags: 
+        - Comments
+      security:
+        - bearerAuth: []
+      summary: Update like
+      description: Endpoit used to update a like of comment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestLikeDTO'
+      responses:
+        '201':
+          description: The like object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/message'
+  
+    delete:
+      tags: 
+        - Comments
+      security:
+        - bearerAuth: []
+      summary: User removes his like
+      description: Enpoint used to remove a Like of comment
+      responses:
+        '204':
+          description: like removed
+
+components:
+  securitySchemes:
+      bearerAuth:            # arbitrary name for the security scheme
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+  schemas:
+    requestLoginDTO:
+      type: object
+      description: a email and password
+      properties:
+        email:
+          type: string
+          example: example@gmail.com
+        password:
+          type: string
+          example: 23456789
+    responseLoginDTO:
+      type: object
+      description: A token
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+    requestSignupDTO:
+      type: object
+      description: A new user
+      properties:
+        name:
+          type: string
+          example: John 
+        username:
+          type: string
+          example: user1 
+        email:
+          type: string
+          example: example@gmail.com
+        pasword:
+          type: string
+          example: 23456
+        passwordConfirmation:
+          type: string
+          example: 23456
+    responseSignupDTO:
+      type: object
+      description: A new user
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: John 
+        username:
+          type: string
+          example: user1 
+        email:
+          type: string
+          example: example@gmail.com
+    userDTO:
+      type: object
+      description: A created post
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: John
+        username: 
+          type: string
+          example: user1
+        email:
+          type: string
+          example: example@gmail.com
+        isPublishedEmail:
+          type: boolean
+          example: true
+        isPublishedName:
+          type: boolean
+          example: true
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    updateUserDTO:
+      type: object
+      description: A created post
+      properties:
+        name:
+          type: string
+          example: John
+        username: 
+          type: string
+          example: user1
+        email:
+          type: string
+          example: example@gmail.com
+        isPublishedEmail:
+          type: boolean
+          example: true
+        isPublishedName:
+          type: boolean
+          example: true
+        isActive:
+          type: boolean
+          example: true
+
+    requestPostDTO:
+      type: object
+      description: A created post
+      properties:
+        title:
+          type: string
+          example: My first blog
+        content:
+          description: post's description 
+          type: string
+          example: My first blog's description 
+        is_public:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+
+    responsePostDTO:
+      type: object
+      description: A posts
+      properties:
+        title:
+          type: string
+          example: My first blog
+        content:
+          description: post's description 
+          type: string
+          example: My first blog's description 
+        isPublic:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+        countLike:
+          type: number
+          example: 0
+        countDislike:
+          type: number
+          example: 0
+        user: 
+          type: object
+          description: User did a post
+          properties:
+            name:
+              type: string
+              example: Coren
+              
+          
+    updateReqPostDTO:
+      type: object
+      description: A posts
+      properties:
+        title:
+          type: string
+          example: My first blog
+        content:
+          description: post's description 
+          type: string
+          example: My first blog's description 
+        isPublic:
+          type: boolean
+          example: true
+
+    commentDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+          example: "first comment"
+        isPublic:
+          type: boolean
+        countLike:
+          type: number
+          example: 0
+        countDislike:
+          type: number
+          example: 0
+        user:
+          type: object
+          description: User did a comment
+          properties: 
+            name:
+              type: string
+              example: coren
+              
+  
+    requestCommentDTO:
+      type: object
+      properties:
+        content:
+          type: string
+    
+    requestLikeDTO:
+      type: object
+      properties:
+        like:
+          type: boolean
+          
+    message:
+      type: object
+      properties:
+        message: 
+          type: string
+          example: suscessful action
+    code400:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          example: 400
+        code:
+          type: string
+          example: 'Bad Request'
+    code404:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          example: 404
+        code:
+          type: string
+          example: 'Not Found'
+
+    code500:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'A general error occurred'
+  parameters:
+    postId:
+      name: postId
+      in: path
+      required: true
+      description: post id
+      schema:
+        type: string
+        format: id
+    commentId:
+      name: commentId
+      in: path
+      description: comment id
+      required: true
+      schema:
+        type: string
+        format: id
+    likeId:
+      name: likeId
+      in: path
+      description: like id
+      required: true
+      schema:
+        type: string
+        format: id
+    like:
+      name: like
+      in: query
+      required: true
+      schema:
+        type: boolean
+        example: true
+    take:
+      name: take
+      in: query
+      required: false
+      schema:
+        type: number
+        default: 10
+    page: 
+      name: page
+      in: query
+      required: false
+      schema:
+        type: number
+        default: 1
+        
