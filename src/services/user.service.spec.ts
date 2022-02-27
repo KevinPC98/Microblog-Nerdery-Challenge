@@ -26,8 +26,10 @@ describe('UserService', () => {
   })
 
   describe('Update', () => {
+    let createdUser: User
+
     beforeEach(async () => {
-      await prisma.user.create({
+      createdUser = await prisma.user.create({
         data: {
           ...objuser,
         },
@@ -38,6 +40,7 @@ describe('UserService', () => {
         },
       })
     })
+
     afterEach(async () => {
       await prisma.user.delete({
         where: {
@@ -50,23 +53,14 @@ describe('UserService', () => {
         },
       })
     })
+
     it('should update a user successfully', async () => {
-      const getUser = await prisma.user.findUnique({
-        where: {
-          email: objuser.email,
-        },
-        select: {
-          id: true,
-        },
-        rejectOnNotFound: false,
-      })
       const data = plainToClass(ProfileDto, {
         name: faker.name.firstName(),
         userName: faker.internet.userName(),
       })
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const result = await UsersService.update(getUser!.id, data)
+      const result = await UsersService.update(createdUser.id, data)
 
       expect(result).toHaveProperty('name')
       expect(result).toHaveProperty('userName')
@@ -78,19 +72,9 @@ describe('UserService', () => {
     })
 
     it("shouldn't update if sent email is equal to other user's email", async () => {
-      const getUser = await prisma.user.findUnique({
-        where: {
-          email: objuser.email,
-        },
-        select: {
-          id: true,
-        },
-        rejectOnNotFound: false,
-      })
       const data = plainToClass(ProfileDto, { email: objuserTwo.email })
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      await expect(UsersService.update(getUser!.id, data)).rejects.toThrow(
+      await expect(UsersService.update(createdUser.id, data)).rejects.toThrow(
         new UnprocessableEntity('email already exist'),
       )
     })
