@@ -32,12 +32,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/responseLoginDTO"
-        '400':
+        '401':
           description: email and password aren't corrects
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/code400"
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 401
+                  message:
+                    type: string
+                    example: 'User does not exist'
+  
+  /auth/verify-account:
+    get:
+      summary: A user verify his account
+      description: Endpoint used to verify a user's account
+      tags:
+      - Auth
+      parameters: 
+      - in: query
+        name: token
+        required: true
+        description: token used to confirm an account
+        schema:
+          type: string
+          example: eXVCJ9.eyJzdTY0NjAwMjkyMH0.5CjzlYU
+      responses:
+        '204':
+          description: email and password aren't corrects
+
+    
     
   /auth/signup:
     post:
@@ -63,13 +90,27 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/code400"
-        '400':
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 409
+                  message:
+                    type: string
+                    example: 'Email is currently being used'
+        '401':
           description: Passwords must be the same
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/code400"
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 401
+                  message:
+                    type: string
+                    example: 'Passwords must be the same'
   /auth/profile:
     get:
       summary: Return a user's profile
@@ -85,6 +126,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/userDTO"
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 401
+                  message:
+                    type: string
+                    example: 'Invalid credentials'
     
     patch:
       summary: Update a user's profile
@@ -105,37 +159,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/userDTO"
-  
-  /auth/forgot-password:
-    post:
-      summary: User forgot password
-      description: Endpoint used to return an temporal password
-      tags:
-      - Auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email: 
-                  type: string
-                  example: example@gmail.com
-      responses:
-        '201':
-          description: return 
+        '401':
+          description: User not found
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  email: 
+                  statusCode:
+                    type: number
+                    example: 401
+                  message:
                     type: string
-                    example: example@gmail.com
-                  
-                  tempPassword: 
-                    type: string
-                    example: sd@f3$9^9k#
+                    example: 'User not found'
                 
   /auth/logout:
     post:
@@ -178,12 +214,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/code400"
-        '500':
-          description: A general error occurred
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/code500"
+
     
   /posts/{postId}:
     parameters:
@@ -200,12 +231,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/responsePostDTO"
-        '500':
-          description: A general error occurred
+        '404':
+          description: Post does not exist
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/code500"
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post does not exist'
+
 
     patch:
       summary: Partial update a specific post
@@ -230,19 +269,14 @@ paths:
                 type: array
                 items: 
                   $ref: "#/components/schemas/responsePostDTO"
-        '404':
-          description: post not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/code404"
-                
-        '500':
+        '400':
           description: A general error occurred
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/code500"
+                $ref: "#/components/schemas/code400"
+        '500':
+          description: post not found
     
     delete:
       summary: Delete a specific post by id
@@ -254,19 +288,8 @@ paths:
       responses:
         '204':
           description: return a list of posts  
-        '404':
-          description: post not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/code404"
-                  
         '500':
-          description: A general error occurred
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/code500"
+          description: post not found
                 
   /posts/{postId}/like:
     parameters:
@@ -285,26 +308,21 @@ paths:
             schema:
               $ref: '#/components/schemas/requestLikeDTO'
       responses:
-        '200':
-          description: The like object
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/message'
+        '204':
+          description: Create a like from post
         '404':
-          description: like not found
+          description: Post not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/code404"
-                  
-        '500':
-          description: A general error occurred
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/code500"
-        
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post not found'
     delete:
       tags: 
         - Posts
@@ -316,32 +334,33 @@ paths:
         - $ref: "#/components/parameters/postId"
       responses:
         '204':
-          description: like removed
+          description: Like removed
         '404':
-          description: like not found
+          description: Post not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/code404"
-                  
-        '500':
-          description: A general error occurred
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/code500"
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post not found'
         
 
   /posts/{postId}/comments:
     parameters:
       - $ref: "#/components/parameters/postId"
-      - $ref: "#/components/parameters/take"
-      - $ref: "#/components/parameters/page"
     get:
       tags:
         - Comments
       summary: Returns comments from post
       description: Endpoint used to return a list of comments
+      parameters:
+        - $ref: "#/components/parameters/take"
+        - $ref: "#/components/parameters/page"
       responses:
         '200':
           description: Comments returned
@@ -379,13 +398,48 @@ paths:
                           previousPage:
                             type: number
                             example: 0
-        '404':
-          description: Post doesn't exists
+        '400':
+          description: Post not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/code404"
-    
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 400
+                  message:
+                    type: string
+                    example: 'Page or take are not numbers'
+
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post not found'
+                    
+        '411':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 411
+                  message:
+                    type: string
+                    example: 'Pages limit exceeded'
+
     post:
       tags:
         - Comments
@@ -405,6 +459,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/commentDTO'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post not found'
     
   /posts/{postId}/comments/{commentId}:
     parameters: 
@@ -449,6 +516,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/commentDTO'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post does not exist'
+        '401':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 401
+                  message:
+                    type: string
+                    example: 'User isn not authorized to delete this comment'
   
     delete:
       tags: 
@@ -458,8 +551,34 @@ paths:
       summary: Delete a comment
       description: Endpoint used to delete a comment
       responses:
-        '200':
+        '204':
           description: Comment deleted
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post does not exist'
+        '401':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 401
+                  message:
+                    type: string
+                    example: 'User isn not authorized to delete this comment'
   
   /posts/{postId}/comments/{commentId}/like:
     parameters: 
@@ -479,12 +598,21 @@ paths:
             schema:
               $ref: '#/components/schemas/requestLikeDTO'
       responses:
-        '201':
-          description: The like object
+        '204':
+          description: Like created
+        '404':
+          description: Post not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/message'
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post or Comment does not found'
   
     delete:
       tags: 
@@ -496,6 +624,19 @@ paths:
       responses:
         '204':
           description: like removed
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Post or Comment does not found'
 
 components:
   securitySchemes:
@@ -545,25 +686,16 @@ components:
       type: object
       description: A new user
       properties:
-        id:
+        accesToken:
           type: string
-          format: uuid
-        name:
-          type: string
-          example: John 
-        username:
-          type: string
-          example: user1 
-        email:
-          type: string
-          example: example@gmail.com
+          example: eyJhb9.eyJzdWIiOiNjUixOTUyMH0.Dcw2GtGn9Lzs
+        exp:
+          type: number
+          example: 1645919520
     userDTO:
       type: object
       description: A created post
       properties:
-        id:
-          type: string
-          format: uuid
         name:
           type: string
           example: John
@@ -573,10 +705,10 @@ components:
         email:
           type: string
           example: example@gmail.com
-        isPublishedEmail:
+        isEmailublic:
           type: boolean
           example: true
-        isPublishedName:
+        isNamePublic:
           type: boolean
           example: true
         isActive:
@@ -652,7 +784,7 @@ components:
           type: object
           description: User did a post
           properties:
-            name:
+            userName:
               type: string
               example: Coren
               
@@ -693,7 +825,7 @@ components:
           type: object
           description: User did a comment
           properties: 
-            name:
+            userName:
               type: string
               example: coren
               
@@ -703,6 +835,9 @@ components:
       properties:
         content:
           type: string
+        isPublic:
+          type: boolean
+      
     
     requestLikeDTO:
       type: object
@@ -719,12 +854,36 @@ components:
     code400:
       type: object
       properties:
+        message:
+          type: number
+          example: 'BadRequestError'
+        statusCode:
+          type: string
+          example: 400
+        error:
+          type: array
+          items:
+            type: object
+            properties:
+              property:
+                type: string
+                example: 'title'
+              constraints:
+                type: array
+                items:
+                  type: string
+                  example: 'title must be a string'
+               
+    code401:
+      type: object
+      properties:
         statusCode:
           type: number
-          example: 400
-        code:
+          example: 401
+        message:
           type: string
-          example: 'Bad Request'
+          example: 'User does not exist'
+
     code404:
       type: object
       properties:

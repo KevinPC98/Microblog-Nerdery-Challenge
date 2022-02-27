@@ -1,4 +1,5 @@
 import { User } from '@prisma/client'
+import { Unauthorized } from 'http-errors'
 import { plainToClass } from 'class-transformer'
 import { Request, Response } from 'express'
 import { UsersService } from '../services/user.service'
@@ -38,7 +39,7 @@ export async function logout(req: Request, res: Response): Promise<void> {
 
 export async function signup(req: Request, res: Response): Promise<void> {
   if (req.body.password != req.body.passwordConfirmation) {
-    res.status(400).send({ message: 'Passwords must be the same' })
+    throw new Unauthorized('Passwords must be the same')
   }
 
   const dto = plainToClass(CreateUserDto, req.body)
@@ -57,8 +58,6 @@ export async function confirmAccount(
   req: Request,
   res: Response,
 ): Promise<void> {
-  // eslint-disable-next-line no-console
-  console.log('QUERY: ' + req.query.token)
   await UsersService.confirmAccount(req.query.token as string)
 
   res.status(204).send({ message: 'Succesful email confirmation' })

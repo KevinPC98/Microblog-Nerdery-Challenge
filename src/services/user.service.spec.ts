@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
 import jwt from 'jsonwebtoken'
-import { UnprocessableEntity, NotFound } from 'http-errors'
+import { UnprocessableEntity, NotFound, Conflict } from 'http-errors'
 import { User } from '@prisma/client'
 import { CreateUserDto } from '../dtos/users/request/create-user.dto'
 import { prisma } from '../prisma'
@@ -120,7 +120,7 @@ describe('UserService', () => {
         },
       })
 
-      const expected = new UnprocessableEntity('email belong other user')
+      const expected = new Conflict('Email belong other user')
       const result = UsersService.create(objuser)
 
       await expect(result).rejects.toThrowError(expected)

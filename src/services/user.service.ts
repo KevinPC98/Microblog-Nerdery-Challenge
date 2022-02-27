@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { UnprocessableEntity, NotFound } from 'http-errors'
+import { UnprocessableEntity, NotFound, Conflict } from 'http-errors'
 import sgMail from '@sendgrid/mail'
 import { hashSync } from 'bcryptjs'
 import { plainToClass } from 'class-transformer'
@@ -24,7 +24,7 @@ export class UsersService {
     })
 
     if (userFound) {
-      throw new UnprocessableEntity('email belong other user')
+      throw new Conflict('Email belong other user')
     }
 
     const user = await prisma.user.create({

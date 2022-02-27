@@ -53,9 +53,9 @@ export async function createUpdateLikePost(
 
   const postId = req.params.id as string
 
-  const result = await LikeService.createUpdateLike('P', user.id, postId, dto)
+  await LikeService.createUpdateLike('P', user.id, postId, dto)
 
-  res.status(201).json(result)
+  res.status(204).end()
 }
 
 export async function deleteLikePost(

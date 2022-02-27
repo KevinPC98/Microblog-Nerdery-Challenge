@@ -1,4 +1,4 @@
-import { Unauthorized, NotFound } from 'http-errors'
+import { Unauthorized, NotFound, BadRequest, LengthRequired } from 'http-errors'
 import { plainToClass } from 'class-transformer'
 import { Prisma } from '@prisma/client'
 import { ResquestCommentDto } from '../dtos/comment/request/comment.dto'
@@ -33,14 +33,14 @@ export class CommentService {
 
       const isNumber = /^0{0}[0-9]*$/
       if (!isNumber.test(page) || !isNumber.test(take))
-        throw new Error("Page or take aren't numbers")
+        throw new BadRequest("Page or take aren't numbers")
 
       const pageNro = !page ? 1 : parseInt(page)
       const takeNro = !take ? 10 : parseInt(take)
 
       const totalPages = Math.ceil(countCom / takeNro)
       if (pageNro > totalPages) {
-        throw new Error('Pages limit exceeded')
+        throw new LengthRequired('Pages limit exceeded')
       }
 
       const comments = await prisma.comment.findMany({
@@ -200,7 +200,7 @@ export class CommentService {
       })
 
       if (dataFound.post.id !== postId) {
-        throw new Unauthorized('Post does not exist')
+        throw new NotFound('Post does not exist')
       }
 
       if (dataFound.user.id !== userId) {

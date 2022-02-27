@@ -2,7 +2,7 @@ import { Comment, Post, User } from '@prisma/client'
 import { hashSync } from 'bcryptjs'
 import { plainToClass } from 'class-transformer'
 import faker from 'faker'
-import { NotFound, Unauthorized } from 'http-errors'
+import { NotFound, Unauthorized, BadRequest, LengthRequired } from 'http-errors'
 import { ResquestCommentDto } from '../dtos/comment/request/comment.dto'
 import { ResponseCommentDto } from '../dtos/comment/response/comment.dto'
 import { RequestPostDto } from '../dtos/post/request/requestpost.dto'
@@ -110,7 +110,7 @@ describe('CommentService', () => {
     })
 
     it('should throw an error if Page or Take are not numbers', async () => {
-      const expected = new Error("Page or take aren't numbers")
+      const expected = new BadRequest("Page or take aren't numbers")
 
       await expect(
         CommentService.getComments('a', 'b', createdPost.id),
@@ -118,7 +118,7 @@ describe('CommentService', () => {
     })
 
     it('should throw an error if the number of pages was exceeded', async () => {
-      const expected = new Error('Pages limit exceeded')
+      const expected = new LengthRequired('Pages limit exceeded')
       const page = '3'
       const take = '10'
 
@@ -228,7 +228,7 @@ describe('CommentService', () => {
           createdComment.id,
           data,
         ),
-      ).rejects.toThrow(new Unauthorized('Post does not exist'))
+      ).rejects.toThrow(new NotFound('Post does not exist'))
     })
 
     it('should throw an error if the comment does not exist', async () => {
