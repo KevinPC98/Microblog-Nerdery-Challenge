@@ -9,7 +9,8 @@
     "test:coverage": "dotenv -e .env.test -- jest --runInBand --collect-coverage",
     "prisma:migrate:save": "prisma migrate dev --preview-feature --create-only",
     "prisma:migrate:run": "prisma migrate deploy --preview-feature",
-    "prisma:migrate:run:test": "dotenv -e .env.test -- prisma migrate deploy --preview-feature"
+    "prisma:migrate:run:test": "dotenv -e .env.test -- prisma migrate deploy --preview-feature",
+    "prisma:generate":"prisma generate"
   },
   "author": "",
   "license": "ISC",
